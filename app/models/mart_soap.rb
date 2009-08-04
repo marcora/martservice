@@ -22,9 +22,7 @@ def filterize(filter)
 		children = filter[:filters]
 		filter.delete(:filters)
 	end
-	filter.merge!({ :id => filter[:name], :text => filter[:display_name] || filter[:name], :children => (children.map { |child| attributize(child) } unless children.empty?), :leaf => children.empty? })
-	filter.merge!({ 'iconCls' => 'filter_icon' }) if children.empty?
-	return filter
+	filter.merge({ :iconCls => children.empty? ? 'filter_icon' : '', :text => filter[:display_name] || filter[:name], :children => (children.map { |child| attributize(child) } unless children.empty?), :leaf => children.empty? })
 end
 
 def attributize(attribute)
@@ -39,9 +37,7 @@ def attributize(attribute)
 		children = attribute[:attributes]
 		attribute.delete(:attributes)
 	end
-	attribute.merge!({ :id => attribute[:name], :text => attribute[:display_name] || attribute[:name], :children => (children.map { |child| attributize(child) } unless children.empty?), :leaf => children.empty? })
-	attribute.merge!({ 'iconCls' => 'attribute_icon' }) if children.empty?
-	return attribute
+	attribute.merge({ :iconCls => children.empty? ? 'attribute_icon' : '', :text => attribute[:display_name] || attribute[:name], :children => (children.map { |child| attributize(child) } unless children.empty?), :leaf => children.empty? })
 end
 
 class MartSoap < Handsoap::Service
