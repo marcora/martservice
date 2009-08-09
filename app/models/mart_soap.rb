@@ -22,7 +22,7 @@ def filterize(filter)
     children = filter[:filters]
     filter.delete(:filters)
   end
-  filter.merge({ :iconCls => children.empty? ? 'filter_icon' : '', :text => filter[:display_name] || filter[:name], :children => (children.map { |child| attributize(child) } unless children.empty?), :leaf => children.empty? })
+  filter.merge({ :text => filter[:display_name] || filter[:name], :children => (children.map { |child| attributize(child) } unless children.empty?), :leaf => children.empty? })
 end
 
 def attributize(attribute)
@@ -37,7 +37,7 @@ def attributize(attribute)
     children = attribute[:attributes]
     attribute.delete(:attributes)
   end
-  attribute.merge({ :iconCls => children.empty? ? 'attribute_icon' : '', :text => attribute[:display_name] || attribute[:name], :children => (children.map { |child| attributize(child) } unless children.empty?), :leaf => children.empty? })
+  attribute.merge({ :text => attribute[:display_name] || attribute[:name], :children => (children.map { |child| attributize(child) } unless children.empty?), :leaf => children.empty? })
 end
 
 class MartSoap < Handsoap::Service
@@ -48,12 +48,12 @@ class MartSoap < Handsoap::Service
 
     self.marts().each_with_index { |mart, index|
       marts << mart
-      marts_and_datasets << mart.merge!({ :itemId => mart[:name], :text => mart[:display_name] || mart[:name], :iconCls => 'server_icon', :menu => [] })
+      marts_and_datasets << mart.merge!({ :itemId => mart[:name], :text => mart[:display_name] || mart[:name], :iconCls => 'mart_icon', :menu => [] })
 
       datasets = []
       self.datasets(mart[:name]).each { |dataset|
         datasets << dataset
-        marts_and_datasets[index][:menu] << dataset.merge!({ :text => dataset[:display_name] || dataset[:name], :iconCls => 'query_icon', :menu => [{ :text => 'Default', :iconCls => 'form_icon', :itemId => dataset[:name], :mart_name => mart[:name], :mart_display_name => mart[:display_name], :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] }] })
+        marts_and_datasets[index][:menu] << dataset.merge!({ :text => dataset[:display_name] || dataset[:name], :iconCls => 'dataset_icon', :menu => [{ :text => 'default', :iconCls => 'interface_icon', :itemId => dataset[:name], :mart_name => mart[:name], :mart_display_name => mart[:display_name], :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] }] })
         # for each dataset write filters and attributes static json files
         filename = "#{JSON_DIR}/#{dataset[:name]}.filters.json"
         json = self.filters(dataset[:name]).map { |filter|
