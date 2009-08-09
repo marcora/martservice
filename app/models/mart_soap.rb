@@ -53,7 +53,7 @@ class MartSoap < Handsoap::Service
       datasets = []
       self.datasets(mart[:name]).each { |dataset|
         datasets << dataset
-        marts_and_datasets[index][:menu] << dataset.merge!({ :text => dataset[:display_name] || dataset[:name], :iconCls => 'dataset_icon', :menu => [{ :text => 'default', :iconCls => 'interface_icon', :itemId => dataset[:name], :mart_name => mart[:name], :mart_display_name => mart[:display_name], :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] }] })
+        marts_and_datasets[index][:menu] << dataset.merge!({ :text => dataset[:display_name] || dataset[:name], :iconCls => 'dataset_icon', :menu => [{ :text => 'Simple', :iconCls => 'interface_icon', :itemId => 'simple', :mart_name => mart[:name], :mart_display_name => mart[:display_name], :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] },{ :text => 'Guided', :iconCls => 'interface_icon', :itemId => 'guided', :mart_name => mart[:name], :mart_display_name => mart[:display_name], :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] },{ :text => 'Advanced', :iconCls => 'interface_icon', :itemId => 'advanced', :mart_name => mart[:name], :mart_display_name => mart[:display_name], :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] }] })
         # for each dataset write filters and attributes static json files
         filename = "#{JSON_DIR}/#{dataset[:name]}.filters.json"
         json = self.filters(dataset[:name]).map { |filter|
