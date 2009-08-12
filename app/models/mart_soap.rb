@@ -121,20 +121,6 @@ class MartSoap < Handsoap::Service
     node = response.document.xpath('//ns:filterPage', ns).map { |node| parse_filter_page(node) }
   end
 
-  # query
-
-  def query(datasets, filters, attributes, header=false, count=false, unique_rows=true, virtual_schema='default')
-    response = invoke("ns:query", :soap_action => :none) do |message|
-      message.add 'ns:virtualSchema', virtual_schema
-      message.add 'ns:header', header.to_i
-      message.add 'ns:count', count.to_i
-      message.add 'ns:uniqueRows', unique_rows.to_i
-      message.add 'ns:datasets', datasets
-      message.add
-    end
-    node = response.document.xpath('//ns:resultsRow', ns).map { |node| parse_results_row(node) }
-  end
-
 
   private
 
@@ -247,13 +233,4 @@ class MartSoap < Handsoap::Service
     }
   end
 
-  # results
-
-  def parse_results_row(node, attributes)
-    row = { }
-    attributes.each { |attribute|
-      row[attribute.name] = xml_to_str(node, "./ns:#{attribute.name}/text()")
-    }
-    return row
-  end
 end
