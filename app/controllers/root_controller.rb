@@ -1,23 +1,23 @@
 class RootController < ApplicationController
   def index
+    rows = nil
     ms = MartSoap.new
-    data = nil
     case params[:type]
     when 'registry'
-      data = ms.marts()
+      rows = ms.marts()
     when 'datasets'
-      data = ms.datasets(params[:mart])
+      rows = ms.datasets(params[:mart])
     when 'configuration'
-      data = MartHttp.configuration(params[:dataset])
+      rows = MartHttp.configuration(params[:dataset])
     when 'attributes'
-      data = ms.attributes(params[:dataset])
+      rows = ms.attributes(params[:dataset])
     when 'filters'
-      data = ms.filters(params[:dataset])
+      rows = ms.filters(params[:dataset])
     when 'query'
-      data = MartHttp.query(params[:query])
+      rows = MartHttp.query(params[:xml])
     end
-    if data
-      render :json => { :rows => data }, :callback => params[:callback]
+    if rows
+      render :json => { :rows => rows }, :callback => params[:callback]
     end
   end
 end

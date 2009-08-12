@@ -7,12 +7,12 @@ class MartHttp
 
   base_uri 'www.biomart.org/biomart/martservice'
 
-  def self.query(query)
-    # assume csv formatter
-    csv = post('/', :body => { :query => query }, :format => :plain).to_s
+  def self.query(xml)
     rows = []
-    query = Hpricot(query)
-    keys = query.search("/Query/Dataset/Attribute").map { |attr| attr['name'] }
+    # assume csv formatter, to_s is important here!
+    csv = post('/', :body => { :query => xml }, :format => :plain).to_s
+    xml = Hpricot(xml)
+    keys = xml.search("/Query/Dataset/Attribute").map { |attr| attr['name'] }
     CSV.parse(csv) { |values| rows << Hash[*keys.zip(values).flatten] }
     rows
   end
