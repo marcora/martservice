@@ -53,7 +53,7 @@ class MartSoap < Handsoap::Service
       datasets = []
       self.datasets(mart[:name]).each { |dataset|
         datasets << dataset
-        marts_and_datasets[index][:menu] << dataset.merge!({ :text => dataset[:display_name] || dataset[:name], :iconCls => 'dataset_icon', :menu => [{ :text => 'Simple search', :iconCls => 'search_icon', :itemId => 'simple', :search_name => 'simple', :search_display_name => 'Simple search', :mart_name => mart[:name], :mart_display_name => mart[:display_name], :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] },{ :text => 'All GC-rich genes on chromosome 5', :iconCls => 'search_icon', :itemId => 'advanced', :search_name => 'advanced', :search_display_name => 'All GC-rich genes on chromosome 5', :mart_name => mart[:name], :mart_display_name => mart[:display_name], :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] }] })
+        marts_and_datasets[index][:menu] << dataset.merge!({ :text => dataset[:display_name] || dataset[:name], :iconCls => 'dataset_icon', :menu => [{ :text => 'Simple', :iconCls => 'search_icon', :itemId => 'simple', :search_name => 'simple', :search_display_name => 'Simple', :mart_name => mart[:name], :mart_display_name => mart[:display_name], :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] }, { :text => 'Faceted', :iconCls => 'search_icon', :itemId => 'faceted', :search_name => 'faceted', :search_display_name => 'Faceted', :mart_name => mart[:name], :mart_display_name => mart[:display_name], :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] },{ :text => 'Advanced', :iconCls => 'search_icon', :itemId => 'advanced', :search_name => 'advanced', :search_display_name => 'Advanced', :mart_name => mart[:name], :mart_display_name => mart[:display_name], :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] },{ :text => 'All GC-rich genes on chromosome 5', :iconCls => 'search_icon', :itemId => 'user', :search_name => 'user', :search_display_name => 'All GC-rich genes on chromosome 5', :mart_name => mart[:name], :mart_display_name => mart[:display_name], :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] }] })
         # for each dataset write filters and attributes static json files
         filename = "#{JSON_DIR}/#{dataset[:name]}.filters.json"
         json = self.filters(dataset[:name]).map { |filter|
@@ -72,7 +72,7 @@ class MartSoap < Handsoap::Service
       json = datasets.to_json
       File.open(filename, 'w') { |f| f.write(json) }
 
-      break if index > 1 # FIX: Uncomment to fetch all datasets
+      break if index > 9 # FIX: Uncomment to fetch all datasets
     }
 
     # write marts static json file
