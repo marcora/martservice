@@ -8,15 +8,15 @@ class RootController < ApplicationController
     when 'datasets'
       data = ms.datasets(params[:mart])
     when 'configuration'
-      data = MartHttp.configuration(params[:dataset])
+      data = MartRest.configuration(params[:dataset])
     when 'attributes'
       data = ms.attributes(params[:dataset])
     when 'filters'
       data = ms.filters(params[:dataset])
     when 'query'
-      data = MartHttp.query(params)
+      data = MartRest.query(params[:xml])
     when 'search'
-      data = MartHttp.search(params)
+      data = MartSolr.search(params[:q])
     end
     if data
       render :json => data, :callback => params[:callback]
