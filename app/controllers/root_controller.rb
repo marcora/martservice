@@ -16,7 +16,11 @@ class RootController < ApplicationController
     when 'query'
       data = MartRest.query(params[:xml])
     when 'search'
-      data = MartSolr.search(params[:q])
+      facet_fields = []
+      facet_fields = params[:facet_fields].split('|') if params[:facet_fields]
+      filters = []
+      filters = params[:filters].split('|') if params[:filters]
+      data = MartSolr.search(params[:q], facet_fields, filters)
     end
     if data
       render :json => data, :callback => params[:callback]

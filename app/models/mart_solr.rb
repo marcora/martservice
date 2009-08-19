@@ -1,36 +1,58 @@
-require 'solr'
+require 'delsolr'
 
 class MartSolr
 
-  @@conn = Solr::Connection.new('http://localhost:8983/solr')
+  @@conn = DelSolr::Client.new(:server => 'localhost', :port => 8983)
 
-  def self.search(q)
-    rows = []
+  def self.search(q, facet_fields=[], filters=[])
+    solr_fields = ['pdb_id','title','header','experiment_type','resolution','keywords_concat','space_group','r_work','authors','submission_date','release_date']
     columns = []
     fields = []
-    count = 0
-    last_doc = nil
-    @@conn.query(q, :rows => 100).each { |doc|
-      rows << doc
-      last_doc = doc
-      count += 1
-    }
-    if last_doc
-      keys = last_doc.keys()
-      ms = MartSoap.new
-      ms.attributes('msd').each { |root|
-        root[:groups].each { |group|
-          group[:collections].each { |collection|
-            collection[:attributes].each { |attribute|
-              if keys.include? attribute[:name]
-                columns << { :header => attribute[:display_name] || attribute[:name], :width => 100, :id => attribute[:name] }
-                fields << { :name => attribute[:name] }
+    facets = []
+    response = @@conn.query('standard', :query => q, :limit => 100, :fields => solr_fields.join(',') , :facets => facet_fields.map { |facet_field| { :field => facet_field, :mincount => 1 } }, :filters => filters)
+    facet_fields_hash = response.facet_fields_by_hash
+    filters_hash = { }
+    filters.each { |filter| filters_hash[filter.split(':')[0]] = filter.split(':')[1] }
+    ms = MartSoap.new
+    ms.attributes('msd').each { |root|
+      root[:groups].each { |group|
+        group[:collections].each { |collection|
+          collection[:attributes].each { |attribute|
+            if solr_fields.include? attribute[:name]
+              columns << { :header => attribute[:display_name] || attribute[:name], :width => 100, :id => attribute[:name] }
+              fields << { :name => attribute[:name] }
+              if filters_hash.keys.include? attribute[:name]
+                facet_fields_hash.delete(attribute[:name])
+                facets << {
+                  :xtype => 'displayfield',
+                  :anchor => '100%',
+                  :name => attribute[:name],
+                  :fieldLabel => attribute[:display_name] || attribute[:name],
+                  :value => filters_hash[attribute[:name]],
+                  :itemCls => 'facet'
+                }
               end
-            }
+              if facet_fields_hash.keys.include? attribute[:name]
+                store = []
+                facet_fields_hash[attribute[:name]].each { |val, count| store << [val, "#{val} [#{count}]"] }
+                facets << {
+                  :xtype => 'combo',
+                  :anchor => '100%',
+                  :name => attribute[:name],
+                  :fieldLabel => attribute[:display_name] || attribute[:name],
+                  :editable => false,
+                  :forceSelection => true,
+                  :lastSearchTerm => false,
+                  :triggerAction => 'all',
+                  :mode => 'local',
+                  :store => store
+                }
+              end
+            end
           }
         }
       }
-    end
-    return { :columns => columns, :fields => fields, :rows => rows, :count => count }
+    }
+    return { :columns => columns, :fields => fields, :facets => facets, :rows => response.docs, :count => response.total }
   end
 end
