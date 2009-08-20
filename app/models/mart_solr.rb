@@ -9,7 +9,7 @@ class MartSolr
     columns = []
     fields = []
     facets = []
-    response = @@conn.query('standard', :query => q, :limit => 100, :fields => solr_fields.join(',') , :facets => facet_fields.map { |facet_field| { :field => facet_field, :mincount => 1 } }, :filters => filters)
+    response = @@conn.query('standard', :query => q, :limit => 100, :fields => solr_fields.join(',') , :facets => facet_fields.map { |facet_field| { :field => facet_field, :mincount => 1, :sort => true } }, :filters => filters)
     facet_fields_hash = response.facet_fields_by_hash
     filters_hash = { }
     filters.each { |filter| filters_hash[filter.split(':')[0]] = filter.split(':')[1] }
