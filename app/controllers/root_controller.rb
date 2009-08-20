@@ -1,4 +1,7 @@
 class RootController < ApplicationController
+
+  skip_before_filter :verify_authenticity_token
+  
   def index
     data = nil
     ms = MartSoap.new
