@@ -6,7 +6,7 @@ MARTSOAP_ENDPOINT = {
 }
 
 
-JSON_DIR = "#{RAILS_ROOT}/../martview.biomart.org/json"
+JSON_DIR = "/Users/marcora/Projects/biomart/martview/json"
 
 # Handsoap.http_driver = :httpclient # uncomment if using jruby!
 
@@ -22,7 +22,7 @@ def filterize(filter)
     children = filter[:filters]
     filter.delete(:filters)
   end
-  filter.merge({ :text => filter[:display_name] || filter[:name], :children => (children.map { |child| attributize(child) } unless children.empty?), :leaf => children.empty? })
+  filter.merge({ :id => rand(36**8).to_s(36), :text => filter[:display_name] || filter[:name], :children => (children.map { |child| attributize(child) } unless children.empty?), :leaf => children.empty? })
 end
 
 def attributize(attribute)
@@ -37,7 +37,7 @@ def attributize(attribute)
     children = attribute[:attributes]
     attribute.delete(:attributes)
   end
-  attribute.merge({ :text => attribute[:display_name] || attribute[:name], :children => (children.map { |child| attributize(child) } unless children.empty?), :leaf => children.empty? })
+  attribute.merge({ :id => rand(36**8).to_s(36), :text => attribute[:display_name] || attribute[:name], :children => (children.map { |child| attributize(child) } unless children.empty?), :leaf => children.empty? })
 end
 
 class MartSoap < Handsoap::Service

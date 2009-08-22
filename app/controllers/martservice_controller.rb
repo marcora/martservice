@@ -1,6 +1,6 @@
 class MartserviceController < ApplicationController
   skip_before_filter :verify_authenticity_token
-  
+
   def index
     data = nil
     ms = MartSoap.new
@@ -22,6 +22,14 @@ class MartserviceController < ApplicationController
       facet_fields = params[:facet_fields].split('|') if params[:facet_fields]
       filters = []
       filters = params[:filters].split('|') if params[:filters]
+      filters = filters.map { |filter|
+        name = filter.split(':')[0]
+        value = filter.split(':')[1]
+        if value =~ /^[^"].*\s+.*[^"]$/i
+          value = '"' + value + '"'
+        end
+        name + ':' + value
+      }
       data = MartSolr.search(params[:q], facet_fields, filters)
     end
     if data

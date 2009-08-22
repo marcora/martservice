@@ -12,7 +12,14 @@ class MartSolr
     response = @@conn.query('standard', :query => q, :limit => 100, :fields => solr_fields.join(',') , :facets => facet_fields.map { |facet_field| { :field => facet_field, :mincount => 1, :sort => true } }, :filters => filters)
     facet_fields_hash = response.facet_fields_by_hash
     filters_hash = { }
-    filters.each { |filter| filters_hash[filter.split(':')[0]] = filter.split(':')[1] }
+    filters.each { |filter|
+      key = filter.split(':')[0]
+      value = filter.split(':')[1]
+      if value =~ /^["].*\s+.*["]$/i
+        value = value[1...value.length-1]
+      end
+      filters_hash[key] = value
+    }
     ms = MartSoap.new
     ms.attributes('msd').each { |root|
       root[:groups].each { |group|
@@ -24,12 +31,11 @@ class MartSolr
               if filters_hash.keys.include? attribute[:name]
                 facet_fields_hash.delete(attribute[:name])
                 facets << {
-                  :xtype => 'displayfield',
+                  :xtype => 'facetfield',
                   :anchor => '100%',
                   :name => attribute[:name],
                   :fieldLabel => attribute[:display_name] || attribute[:name],
-                  :value => filters_hash[attribute[:name]],
-                  :itemCls => 'facet'
+                  :value => filters_hash[attribute[:name]]
                 }
               end
               if facet_fields_hash.keys.include? attribute[:name]
