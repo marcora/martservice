@@ -5,7 +5,6 @@ MARTSOAP_ENDPOINT = {
   :version => 1
 }
 
-
 JSON_DIR = "/Users/marcora/Projects/biomart/martview/json"
 
 # Handsoap.http_driver = :httpclient # uncomment if using jruby!
@@ -43,42 +42,50 @@ end
 class MartSoap < Handsoap::Service
 
   def create_static_json_files
-    marts = []
     marts_and_datasets = []
 
     self.marts().each_with_index { |mart, index|
-      marts << mart
       marts_and_datasets << mart.merge!({ :itemId => mart[:name], :text => mart[:display_name] || mart[:name], :iconCls => 'mart_icon', :menu => [] })
 
-      datasets = []
       self.datasets(mart[:name]).each { |dataset|
-        datasets << dataset
-        marts_and_datasets[index][:menu] << dataset.merge!({ :text => dataset[:display_name] || dataset[:name], :iconCls => 'dataset_icon', :menu => [{ :text => 'Simple', :iconCls => 'search_icon', :itemId => 'simple', :search_name => 'simple', :search_display_name => 'Simple', :mart_name => mart[:name], :mart_display_name => mart[:display_name], :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] }, { :text => 'Faceted', :iconCls => 'search_icon', :itemId => 'faceted', :search_name => 'faceted', :search_display_name => 'Faceted', :mart_name => mart[:name], :mart_display_name => mart[:display_name], :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] },{ :text => 'Advanced', :iconCls => 'search_icon', :itemId => 'advanced', :search_name => 'advanced', :search_display_name => 'Advanced', :mart_name => mart[:name], :mart_display_name => mart[:display_name], :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] },{ :text => 'All GC-rich genes on chromosome 5', :iconCls => 'search_icon', :itemId => 'user', :search_name => 'user', :search_display_name => 'All GC-rich genes on chromosome 5', :mart_name => mart[:name], :mart_display_name => mart[:display_name], :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] }] })
+        marts_and_datasets[index][:menu] << dataset.merge!({ :itemId => dataset[:name], :text => dataset[:display_name] || dataset[:name], :iconCls => 'dataset_icon',
+                                                             :menu => [{
+                                                                         :itemId => 'simple', :text => 'Simple', :iconCls => 'simple_search_icon',
+                                                                         :mart_name => mart[:name], :mart_display_name => mart[:display_name] || mart[:name],
+                                                                         :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] || dataset[:name],
+                                                                         :search_name => 'simple', :search_display_name => 'Simple',
+                                                                         :results_name => 'tabular'
+                                                                       },
+                                                                       {
+                                                                         :itemId => 'guided', :text => 'Guided', :iconCls => 'guided_search_icon',
+                                                                         :mart_name => mart[:name], :mart_display_name => mart[:display_name] || mart[:name],
+                                                                         :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] || dataset[:name],
+                                                                         :search_name => 'guided', :search_display_name => 'Guided',
+                                                                         :results_name => 'tabular'
+                                                                       },
+                                                                       {
+                                                                         :itemId => 'advanced', :text => 'Advanced', :iconCls => 'advanced_search_icon',
+                                                                         :mart_name => mart[:name], :mart_display_name => mart[:display_name] || mart[:name],
+                                                                         :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] || dataset[:name],
+                                                                         :search_name => 'advanced', :search_display_name => 'Advanced',
+                                                                         :results_name => 'tabular'
+                                                                       },
+                                                                       {
+                                                                         :itemId => 'user', :text => 'High-res NMR structures of dimers', :iconCls => 'user_search_icon',
+                                                                         :mart_name => mart[:name], :mart_display_name => mart[:display_name] || mart[:name],
+                                                                         :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] || dataset[:name],
+                                                                         :search_name => 'user', :search_display_name => 'High-res NMR structures of dimers',
+                                                                         :results_name => 'tabular'
+                                                                       }]
+                                                           })
+
         # for each dataset write filters and attributes static json files
-        filename = "#{JSON_DIR}/#{dataset[:name]}.filters.json"
-        json = self.filters(dataset[:name]).map { |filter|
-          filterize(filter)
-        }.to_json
-        File.open(filename, 'w') { |f| f.write(json) }
-        filename = "#{JSON_DIR}/#{dataset[:name]}.attributes.json"
-        json = self.attributes(dataset[:name]).map { |attribute|
-          attributize(attribute)
-        }.to_json
+        filename = "#{JSON_DIR}/#{mart[:name]}.#{dataset[:name]}.json"
+        json = { :filters => self.filters(dataset[:name]).map { |filter| filterize(filter) }, :attributes => self.attributes(dataset[:name]).map { |attribute| attributize(attribute) } }.to_json
         File.open(filename, 'w') { |f| f.write(json) }
       }
-
-      # write datasets static json file
-      filename = "#{JSON_DIR}/#{mart[:name]}.datasets.json"
-      json = datasets.to_json
-      File.open(filename, 'w') { |f| f.write(json) }
-
       break if index > 9 # FIX: Uncomment to fetch all datasets
     }
-
-    # write marts static json file
-    filename = "#{JSON_DIR}/marts.json"
-    json = marts.to_json
-    File.open(filename, 'w') { |f| f.write(json) }
 
     # write marts_and_datasets static json file
     filename = "#{JSON_DIR}/marts_and_datasets.json"
