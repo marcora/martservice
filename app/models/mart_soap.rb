@@ -50,24 +50,24 @@ class MartSoap < Handsoap::Service
       self.datasets(mart[:name]).each { |dataset|
         marts_and_datasets[index][:menu] << dataset.merge!({ :itemId => dataset[:name], :text => dataset[:display_name] || dataset[:name], :iconCls => 'dataset_icon',
                                                              :menu => [{
-                                                                         :itemId => 'simple', :text => 'Simple', :iconCls => 'simple_search_icon',
+                                                                         :itemId => 'simple', :text => 'Simple Search', :iconCls => 'simple_search_icon',
                                                                          :mart_name => mart[:name], :mart_display_name => mart[:display_name] || mart[:name],
                                                                          :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] || dataset[:name],
-                                                                         :search_name => 'simple', :search_display_name => 'Simple',
+                                                                         :search_name => 'simple', :search_display_name => 'Simple Search',
                                                                          :results_name => 'tabular'
                                                                        },
                                                                        {
-                                                                         :itemId => 'guided', :text => 'Guided', :iconCls => 'guided_search_icon',
+                                                                         :itemId => 'guided', :text => 'Guided Search', :iconCls => 'guided_search_icon',
                                                                          :mart_name => mart[:name], :mart_display_name => mart[:display_name] || mart[:name],
                                                                          :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] || dataset[:name],
-                                                                         :search_name => 'guided', :search_display_name => 'Guided',
+                                                                         :search_name => 'guided', :search_display_name => 'Guided Search',
                                                                          :results_name => 'tabular'
                                                                        },
                                                                        {
-                                                                         :itemId => 'advanced', :text => 'Advanced', :iconCls => 'advanced_search_icon',
+                                                                         :itemId => 'advanced', :text => 'Advanced Search', :iconCls => 'advanced_search_icon',
                                                                          :mart_name => mart[:name], :mart_display_name => mart[:display_name] || mart[:name],
                                                                          :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] || dataset[:name],
-                                                                         :search_name => 'advanced', :search_display_name => 'Advanced',
+                                                                         :search_name => 'advanced', :search_display_name => 'Advanced Search',
                                                                          :results_name => 'tabular'
                                                                        },
                                                                        {
