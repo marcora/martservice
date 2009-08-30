@@ -48,36 +48,13 @@ class MartSoap < Handsoap::Service
       marts_and_datasets << mart.merge!({ :itemId => mart[:name], :text => mart[:display_name] || mart[:name], :iconCls => 'mart_icon', :menu => [] })
 
       self.datasets(mart[:name]).each { |dataset|
-        marts_and_datasets[index][:menu] << dataset.merge!({ :itemId => dataset[:name], :text => dataset[:display_name] || dataset[:name], :iconCls => 'dataset_icon',
-                                                             :menu => [{
-                                                                         :itemId => 'simple', :text => 'Simple Search', :iconCls => 'simple_search_icon',
-                                                                         :mart_name => mart[:name], :mart_display_name => mart[:display_name] || mart[:name],
-                                                                         :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] || dataset[:name],
-                                                                         :search_name => 'simple', :search_display_name => 'Simple Search',
-                                                                         :results_name => 'tabular'
-                                                                       },
-                                                                       {
-                                                                         :itemId => 'guided', :text => 'Guided Search', :iconCls => 'guided_search_icon',
-                                                                         :mart_name => mart[:name], :mart_display_name => mart[:display_name] || mart[:name],
-                                                                         :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] || dataset[:name],
-                                                                         :search_name => 'guided', :search_display_name => 'Guided Search',
-                                                                         :results_name => 'tabular'
-                                                                       },
-                                                                       {
-                                                                         :itemId => 'advanced', :text => 'Advanced Search', :iconCls => 'advanced_search_icon',
-                                                                         :mart_name => mart[:name], :mart_display_name => mart[:display_name] || mart[:name],
-                                                                         :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] || dataset[:name],
-                                                                         :search_name => 'advanced', :search_display_name => 'Advanced Search',
-                                                                         :results_name => 'tabular'
-                                                                       },
-                                                                       {
-                                                                         :itemId => 'user', :text => 'High-res NMR structures of dimers', :iconCls => 'user_search_icon',
-                                                                         :mart_name => mart[:name], :mart_display_name => mart[:display_name] || mart[:name],
-                                                                         :dataset_name => dataset[:name], :dataset_display_name => dataset[:display_name] || dataset[:name],
-                                                                         :search_name => 'user', :search_display_name => 'High-res NMR structures of dimers',
-                                                                         :results_name => 'tabular'
-                                                                       }]
-                                                           })
+        marts_and_datasets[index][:menu] << dataset.merge!({ :itemId => dataset[:name],
+                                                             :text => dataset[:display_name] || dataset[:name],
+                                                             :iconCls => 'dataset_icon',
+                                                             :mart_name => mart[:name],
+                                                             :mart_display_name => mart[:display_name] || mart[:name],
+                                                             :dataset_name => dataset[:name],
+                                                             :dataset_display_name => dataset[:display_name] || dataset[:name] })
 
         # for each dataset write filters and attributes static json files
         filename = "#{JSON_DIR}/#{mart[:name]}.#{dataset[:name]}.json"
