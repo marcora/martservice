@@ -32,7 +32,6 @@ class MartSolr
                 facet_fields_hash.delete(attribute[:name])
                 facets << {
                   :xtype => 'facetfield',
-                  :anchor => '100%',
                   :name => attribute[:name],
                   :fieldLabel => attribute[:display_name] || attribute[:name],
                   :value => filters_hash[attribute[:name]]
@@ -43,7 +42,6 @@ class MartSolr
                 facet_fields_hash[attribute[:name]].each { |val, count| store << [val, "#{val} [#{count}]"] }
                 facets << {
                   :xtype => 'combo',
-                  :anchor => '100%',
                   :name => attribute[:name],
                   :fieldLabel => attribute[:display_name] || attribute[:name],
                   :editable => false,
