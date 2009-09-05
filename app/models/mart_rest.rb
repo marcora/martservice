@@ -23,7 +23,7 @@ class MartRest
         group[:collections].each { |collection|
           collection[:attributes].each { |attribute|
             if keys.include? attribute[:name]
-              columns << { :header => attribute[:display_name] || attribute[:name], :width => 100, :id => attribute[:name] }
+              columns << { :header => attribute[:display_name] || attribute[:name], :width => 100, :id => attribute[:name], :dataIndex => attribute[:name] }
               fields << { :name => attribute[:name] }
             end
           }

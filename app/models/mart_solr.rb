@@ -26,7 +26,7 @@ class MartSolr
         group[:collections].each { |collection|
           collection[:attributes].each { |attribute|
             if solr_fields.include? attribute[:name]
-              columns << { :header => attribute[:display_name] || attribute[:name], :width => 100, :id => attribute[:name] }
+              columns << { :header => attribute[:display_name] || attribute[:name], :width => 100, :id => attribute[:name], :dataIndex => attribute[:name] }
               fields << { :name => attribute[:name] }
               if filters_hash.keys.include? attribute[:name]
                 facet_fields_hash.delete(attribute[:name])
