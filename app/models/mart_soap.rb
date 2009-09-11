@@ -42,13 +42,13 @@ end
 class MartSoap < Handsoap::Service
 
   def create_static_json_files
-    marts_and_datasets = []
+    select_dataset_menu = { :text => 'BioMart', :iconCls => 'biomart_icon', :menu => [] }
 
     self.marts().each_with_index { |mart, index|
-      marts_and_datasets << mart.merge!({ :itemId => mart[:name], :text => mart[:display_name] || mart[:name], :iconCls => 'mart_icon', :menu => [] })
+      select_dataset_menu[:menu] << mart.merge!({ :itemId => mart[:name], :text => mart[:display_name] || mart[:name], :iconCls => 'mart_icon', :menu => [] })
 
       self.datasets(mart[:name]).each { |dataset|
-        marts_and_datasets[index][:menu] << dataset.merge!({ :itemId => dataset[:name],
+        select_dataset_menu[:menu][index][:menu] << dataset.merge!({ :itemId => dataset[:name],
                                                              :text => dataset[:display_name] || dataset[:name],
                                                              :iconCls => 'dataset_icon',
                                                              :mart_name => mart[:name],
@@ -64,9 +64,9 @@ class MartSoap < Handsoap::Service
       break if index > 9 # FIX: Uncomment to fetch all datasets
     }
 
-    # write marts_and_datasets static json file
-    filename = "#{JSON_DIR}/marts_and_datasets.json"
-    json = marts_and_datasets.to_json
+    # write select_dataset_menu static json file
+    filename = "#{JSON_DIR}/select_dataset_menu.json"
+    json = select_dataset_menu.to_json
     File.open(filename, 'w') { |f| f.write(json) }
   end
 

@@ -15,10 +15,11 @@ class MartRest
     csv = post('/', :body => { :query => xml, :format => :plain}).to_s
     count = post('/', :body => { :query => xml.gsub(/count="."/i, 'count="1"') }, :format => :plain).to_i
     xml = Hpricot(xml) # this line should go first to validate xml, however then xml.to_s spits out well formed xml that biomart service complains about! :(
-    keys = xml.search("/Query/Dataset/Attribute").map { |attr| attr['name'] }
+    keys = xml.search("/Query/Dataset/Attribute").map { |attribute| attribute['name'] }
+    dataset_name = xml.search("/Query/Dataset").map { |dataset| dataset['name'] }.first()
     FasterCSV.parse(csv) { |values| rows << Hash[*keys.zip(values).flatten] }
     ms = MartSoap.new
-    ms.attributes('msd').each { |root|
+    ms.attributes(dataset_name).each { |root|
       root[:groups].each { |group|
         group[:collections].each { |collection|
           collection[:attributes].each { |attribute|
