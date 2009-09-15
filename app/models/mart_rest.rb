@@ -1,4 +1,4 @@
-require 'nokogiri'
+require 'xml'
 require 'httparty'
 require 'faster_csv'
 
@@ -14,9 +14,9 @@ class MartRest
     # assume csv formatter, to_s is important here!
     csv = post('/', :body => { :query => xml, :format => :plain}).to_s
     count = post('/', :body => { :query => xml.gsub(/count="."/i, 'count="1"') }, :format => :plain).to_i
-    xml = Nokogiri::XML(xml) # this line should go first to validate xml, however then xml.to_s spits out well formed xml that biomart service complains about! :(
-    keys = xml.search("/Query/Dataset/Attribute").map { |attribute| attribute['name'] }
-    dataset_name = xml.search("/Query/Dataset").map { |dataset| dataset['name'] }.first()
+    doc = XML::Document.string(xml)
+    keys = doc.find("/Query/Dataset/Attribute").map { |attribute| attribute['name'] }
+    dataset_name = doc.find_first("/Query/Dataset")['name']
     FasterCSV.parse(csv) { |values| rows << Hash[*keys.zip(values).flatten] }
     ms = MartSoap.new
     ms.attributes(dataset_name).each { |root|
