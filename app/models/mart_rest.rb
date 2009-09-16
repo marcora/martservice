@@ -12,6 +12,7 @@ class MartRest
     rows = []
     columns = []
     fields = []
+    added_attributes = []
     # assume csv formatter, to_s is important here!
     csv = post('/', :body => { :query => xml, :format => :plain}).to_s
     count = post('/', :body => { :query => xml.gsub(/count="."/i, 'count="1"') }, :format => :plain).to_i
@@ -24,9 +25,10 @@ class MartRest
       root[:groups].each { |group|
         group[:collections].each { |collection|
           collection[:attributes].each { |attribute|
-            if keys.include? attribute[:name]
+            if (keys.include? attribute[:name]) && !(added_attributes.include? attribute[:name])
               columns << { :header => attribute[:display_name] || attribute[:name], :width => 100, :id => attribute[:name], :dataIndex => attribute[:name] }
               fields << { :name => attribute[:name] }
+              added_attributes << attribute[:name]
             end
           }
         }
