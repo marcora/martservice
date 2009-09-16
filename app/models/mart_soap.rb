@@ -22,7 +22,7 @@ def filterize(filter)
     children = filter[:filters]
     filter.delete(:filters)
   end
-  filter.merge({ :id => rand(36**8).to_s(36), :text => filter[:display_name] || filter[:name], :children => (children.map { |child| attributize(child) } unless children.empty?), :leaf => children.empty? })
+  filter.merge({ :id => rand(36**8).to_s(36), :text => filter[:display_name] || filter[:name], :children => (children.map { |child| filterize(child) } unless children.empty?), :leaf => children.empty? })
 end
 
 def attributize(attribute)
@@ -62,7 +62,7 @@ class MartSoap < Handsoap::Service
         json = { :filters => self.filters(dataset[:name]).map { |filter| filterize(filter) }, :attributes => self.attributes(dataset[:name]).map { |attribute| attributize(attribute) } }.to_json
         File.open(filename, 'w') { |f| f.write(json) }
       }
-      break if index > 9 # FIX: Uncomment to fetch all datasets
+      ## break if index > 9
     }
 
     # write select_dataset_menu static json file
