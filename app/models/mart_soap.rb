@@ -50,19 +50,19 @@ class MartSoap < Handsoap::Service
 
       self.datasets(mart[:name]).each { |dataset|
         select_dataset_menu[:menu][index][:menu] << dataset.merge!({ :itemId => dataset[:name],
-                                                             :text => dataset[:display_name] || dataset[:name],
-                                                             :iconCls => 'dataset_icon',
-                                                             :mart_name => mart[:name],
-                                                             :mart_display_name => mart[:display_name] || mart[:name],
-                                                             :dataset_name => dataset[:name],
-                                                             :dataset_display_name => dataset[:display_name] || dataset[:name] })
+                                                                     :text => dataset[:display_name] || dataset[:name],
+                                                                     :iconCls => 'dataset_icon',
+                                                                     :mart_name => mart[:name],
+                                                                     :mart_display_name => mart[:display_name] || mart[:name],
+                                                                     :dataset_name => dataset[:name],
+                                                                     :dataset_display_name => dataset[:display_name] || dataset[:name] })
 
         # for each dataset write filters and attributes static json files
         filename = "#{JSON_DIR}/#{mart[:name]}.#{dataset[:name]}.json"
         json = { :filters => self.filters(dataset[:name]).map { |filter| filterize(filter) }, :attributes => self.attributes(dataset[:name]).map { |attribute| attributize(attribute) } }.to_json
         File.open(filename, 'w') { |f| f.write(json) }
       }
-      ## break if index > 9
+      break if index > 1 # FIX: Uncomment to fetch all datasets
     }
 
     # write select_dataset_menu static json file
@@ -176,6 +176,7 @@ class MartSoap < Handsoap::Service
     {
       :name => xml_to_str(node, './ns:name/text()'),
       :display_name => xml_to_str(node, './ns:displayName/text()'),
+      :default => xml_to_bool(node, './ns:default/text()') || false,
       :description => xml_to_str(node, './ns:description/text()'),
       :model_reference => xml_to_str(node, './ns:modelReference/text()'),
     }
@@ -203,7 +204,7 @@ class MartSoap < Handsoap::Service
     {
       :name => xml_to_str(node, './ns:name/text()'),
       :display_name => xml_to_str(node, './ns:displayName/text()'),
-      :attributes => node.xpath('./ns:filterInfo', ns).map { |node| parse_filter(node) }
+      :filters => node.xpath('./ns:filterInfo', ns).map { |node| parse_filter(node) }
     }
   end
 
@@ -211,10 +212,11 @@ class MartSoap < Handsoap::Service
     {
       :name => xml_to_str(node, './ns:name/text()'),
       :display_name => xml_to_str(node, './ns:displayName/text()'),
+      :default => xml_to_bool(node, './ns:default/text()') || false,
       :description => xml_to_str(node, './ns:description/text()'),
+      :model_reference => xml_to_str(node, './ns:modelReference/text()'),
       :qualifier => xml_to_str(node, './ns:qualifier/text()'),
       :options => xml_to_str(node, './ns:options/text()'),
-      :model_reference => xml_to_str(node, './ns:modelReference/text()'),
     }
   end
 

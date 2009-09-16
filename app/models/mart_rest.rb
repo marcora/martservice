@@ -6,7 +6,8 @@ class MartRest
   include HTTParty
 
   base_uri 'www.biomart.org/biomart/martservice'
-
+  # http_proxy 'wwwcache', 3128
+  
   def self.query(xml)
     rows = []
     columns = []
