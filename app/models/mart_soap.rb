@@ -62,7 +62,7 @@ class MartSoap < Handsoap::Service
         json = { :filters => self.filters(dataset[:name]).map { |filter| filterize(filter) }, :attributes => self.attributes(dataset[:name]).map { |attribute| attributize(attribute) } }.to_json
         File.open(filename, 'w') { |f| f.write(json) }
       }
-      break if index > 1 # FIX: Uncomment to fetch all datasets
+      ## break if index > 1
     }
 
     # write select_dataset_menu static json file
