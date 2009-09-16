@@ -7,7 +7,8 @@ MARTSOAP_ENDPOINT = {
 
 JSON_DIR = "/Users/marcora/Projects/biomart/martview/json"
 
-# Handsoap.http_driver = :httpclient # uncomment if using jruby!
+Handsoap.http_driver = :httpclient
+Handsoap.xml_query_driver = :libxml
 
 def filterize(filter)
   children = []

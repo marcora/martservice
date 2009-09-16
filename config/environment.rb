@@ -21,6 +21,7 @@ Rails::Initializer.run do |config|
   # config.gem "aws-s3", :lib => "aws/s3"
   config.gem 'troelskn-handsoap', :lib => 'handsoap', :source => "http://gems.github.com"
   config.gem 'httparty'
+  config.gem 'httpclient'
   config.gem 'libxml-ruby', :lib => 'xml'
   config.gem 'json'
   config.gem 'delsolr'
