@@ -19,15 +19,14 @@ Rails::Initializer.run do |config|
   # config.gem "hpricot", :version => '0.6', :source => "http://code.whytheluckystiff.net"
   # config.gem "sqlite3-ruby", :lib => "sqlite3"
   # config.gem "aws-s3", :lib => "aws/s3"
-  config.gem 'troelskn-handsoap', :lib => 'handsoap', :source => "http://gems.github.com"
   config.gem 'httparty'
   config.gem 'httpclient'
   config.gem 'libxml-ruby', :lib => 'xml'
   config.gem 'json'
   config.gem 'delsolr'
   config.gem 'fastercsv', :lib => 'faster_csv'
-  config.gem 'thoughtbot-shoulda', :lib => 'shoulda', :source => "http://gems.github.com"
-  
+  config.gem 'troelskn-handsoap', :lib => 'handsoap', :source => "http://gems.github.com"
+
   # Only load the plugins named here, in the order given (default is alphabetical).
   # :all can be used as a placeholder for all plugins not explicitly named
   # config.plugins = [ :exception_notification, :ssl_requirement, :all ]
