@@ -38,11 +38,12 @@ class ActiveSupport::TestCase
   # fixtures :all
 
   # Add more helper methods to be used by all tests here...
-  require 'shoulda'
-  require 'webrat'
+end
 
-  Webrat.configure do |config|
-    config.mode = :rails
-  end
+require 'shoulda'
+require 'factory_girl'
+require 'webrat'
 
+Webrat.configure do |config|
+  config.mode = :selenium
 end
