@@ -36,6 +36,20 @@ class MartRest
     }
     return { :columns => columns, :fields => fields, :rows => rows, :count => count }
   end
+
+  def self.save_search(xml)
+    doc = XML::Document.string(xml)
+    format = doc.find_first("/Query")['formatter'].downcase
+    search = xml
+    return search, format
+  end
+
+  def self.save_results(xml)
+    doc = XML::Document.string(xml)
+    format = doc.find_first("/Query")['formatter'].downcase
+    results = post('/', :body => { :query => xml, :format => :plain})
+    return results, format
+  end
   
   def self.configuration(dataset)
     get('/', :query => { :type => 'configuration', :dataset => dataset }, :format => :xml)

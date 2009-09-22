@@ -3,6 +3,8 @@ class MartserviceController < ApplicationController
 
   def index
     data = nil
+    saved_search = nil
+    saved_results = nil
     ms = MartSoap.new
     case params[:type]
     when 'registry'
@@ -31,9 +33,17 @@ class MartserviceController < ApplicationController
         name + ':' + value
       }
       data = MartSolr.search(params[:q], facet_fields, filters)
+    when 'savesearch'
+      saved_search, format = MartRest.save_search(params[:xml])
+    when 'saveresults'
+      saved_results, format = MartRest.save_results(params[:xml])
     end
     if data
       render :json => data, :callback => params[:callback]
+    elsif saved_search
+      send_data saved_search, :filename => 'biomart_search.'+format, :disposition => 'attachment', :type => format.to_sym
+    elsif saved_results
+      send_data saved_results, :filename => 'biomart_results.'+format, :disposition => 'attachment', :type => format.to_sym
     else
       render :text => params.inspect
     end
