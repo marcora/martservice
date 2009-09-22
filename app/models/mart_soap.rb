@@ -1,7 +1,7 @@
 require 'handsoap'
 
 MARTSOAP_ENDPOINT = {
-  :uri => 'http://www.biomart.org/biomart/martsoap',
+  :uri => 'http://www.biomart.org:80/biomart/martsoap',
   :version => 1
 }
 
