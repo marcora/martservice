@@ -40,10 +40,10 @@ class ActiveSupport::TestCase
   # Add more helper methods to be used by all tests here...
 end
 
-require 'shoulda'
-require 'factory_girl'
 require 'webrat'
+require 'context'
 
 Webrat.configure do |config|
   config.mode = :selenium
+  ## config.selenium_browser_key = "*firefox"
 end

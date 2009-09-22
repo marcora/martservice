@@ -1,8 +1,8 @@
 require 'test_helper'
 
 class MartSoapTest < ActiveSupport::TestCase
-  context 'foo' do
-    should 'test true' do
+  context 'A martsoap object' do
+    test 'should never fail' do
       assert true
     end
   end
