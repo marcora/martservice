@@ -26,7 +26,7 @@ class MartRest
         group[:collections].each { |collection|
           collection[:attributes].each { |attribute|
             if (keys.include? attribute[:name]) && !(added_attributes.include? attribute[:name])
-              columns << { :header => attribute[:display_name] || attribute[:name], :width => 100, :id => attribute[:name], :dataIndex => attribute[:name] }
+              columns << { :header => attribute[:display_name] || attribute[:name], :id => attribute[:name], :dataIndex => attribute[:name] }
               fields << { :name => attribute[:name] }
               added_attributes << attribute[:name]
             end
