@@ -23,7 +23,15 @@ class MartRest
       cancer_type = filter['value'] if ['pancreatic','breast'].include? filter['value']
       filter.remove!
     end
-    
+
+    cancer_type_attribute_requested = false
+    attributes = xml.find("/Query/Dataset/Attribute").map { |attribute| attribute['name'] }
+    if attributes.include? "cancer_type"
+      attribute = xml.find_first("/Query/Dataset/Attribute[@name='cancer_type']")
+      cancer_type_attribute_requested = true
+      attribute.remove!
+    end
+
     original_dataset_name = dataset_name = xml.find_first("/Query/Dataset")['name']
     panc_dataset_name = dataset_name[0..-5]+'panc'
     brst_dataset_name = dataset_name[0..-5]+'brst'
@@ -35,7 +43,7 @@ class MartRest
       count += post('/', :body => { :query => xml.to_s.gsub(/count="."/i, 'count="1"') }, :format => :plain).to_i
       keys = xml.find("/Query/Dataset/Attribute").map { |attribute| attribute['name'] }
       FasterCSV.parse(csv) { |values| rows << Hash[*keys.zip(values).flatten] }
-      rows.each { |row| row['cancer_type'] = cancer_type }
+      rows.each { |row| row['cancer_type'] = cancer_type } if cancer_type_attribute_requested
       puts dataset_name
     else
       # union of two queries
@@ -44,7 +52,7 @@ class MartRest
       count += post('/', :body => { :query => xml.to_s.gsub(/count="."/i, 'count="1"') }, :format => :plain).to_i
       keys = xml.find("/Query/Dataset/Attribute").map { |attribute| attribute['name'] }
       FasterCSV.parse(csv) { |values| rows << Hash[*keys.zip(values).flatten] }
-      rows.each { |row| row['cancer_type'] = 'pancreatic' unless row['cancer_type'] }
+      rows.each { |row| row['cancer_type'] = 'pancreatic' unless row['cancer_type'] } if cancer_type_attribute_requested
       puts panc_dataset_name
 
       # brst rows
@@ -52,7 +60,7 @@ class MartRest
       count += post('/', :body => { :query => xml.to_s.gsub(/count="."/i, 'count="1"') }, :format => :plain).to_i
       keys = xml.find("/Query/Dataset/Attribute").map { |attribute| attribute['name'] }
       FasterCSV.parse(csv) { |values| rows << Hash[*keys.zip(values).flatten] }
-      rows.each { |row| row['cancer_type'] = 'breast' unless row['cancer_type'] }
+      rows.each { |row| row['cancer_type'] = 'breast' unless row['cancer_type'] } if cancer_type_attribute_requested
       puts brst_dataset_name
     end
 
@@ -72,9 +80,10 @@ class MartRest
     }
 
     # add virtual cancer type attribute
-    columns.unshift({ :header => 'Cancer Type', :id => 'cancer_type', :dataIndex => 'cancer_type' })
-    fields.unshift({ :name => 'cancer_type' })
-
+    if cancer_type_attribute_requested
+      columns.unshift({ :header => 'Cancer Type', :id => 'cancer_type', :dataIndex => 'cancer_type' })
+      fields.unshift({ :name => 'cancer_type' })
+    end
 
     ###################################################################################
 
@@ -99,7 +108,7 @@ class MartRest
     #     }
     #   }
     # }
-    
+
     return { :columns => columns, :fields => fields, :rows => rows, :count => count }
   end
 
@@ -113,6 +122,7 @@ class MartRest
   def self.save_results(xml)
     xml = XML::Document.string(xml)
     ###########################################################################
+    # TODO: do same as query method to return proper results
     filters = xml.find("/Query/Dataset/Filter").map { |filter| filter['name'] }
     if filters.include? "cancer_type"
       filter = xml.find_first("/Query/Dataset/Filter[@name='cancer_type']")
