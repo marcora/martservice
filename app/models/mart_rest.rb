@@ -112,6 +112,13 @@ class MartRest
 
   def self.save_results(xml)
     xml = XML::Document.string(xml)
+    ###########################################################################
+    filters = xml.find("/Query/Dataset/Filter").map { |filter| filter['name'] }
+    if filters.include? "cancer_type"
+      filter = xml.find_first("/Query/Dataset/Filter[@name='cancer_type']")
+      filter.remove!
+    end
+    ###########################################################################
     format = xml.find_first("/Query")['formatter'].downcase
     results = post('/', :body => { :query => xml.to_s, :format => :plain})
     return results, format
