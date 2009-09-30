@@ -2,6 +2,7 @@ require 'delsolr'
 
 class MartSolr
 
+  # @@conn = DelSolr::Client.new(:server => 'jweb-2b', :port => 21240)
   @@conn = DelSolr::Client.new(:server => 'localhost', :port => 8983)
 
   def self.search(q, facet_fields=[], filters=[])
