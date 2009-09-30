@@ -35,33 +35,42 @@ class MartRest
     original_dataset_name = dataset_name = xml.find_first("/Query/Dataset")['name']
 
     if ['msd', 'interaction', 'complex', 'reaction', 'pathway'].include? dataset_name
-        csv = post('/', :body => { :query => xml.to_s, :format => :plain}).to_s
-        count += post('/', :body => { :query => xml.to_s.gsub(/count="."/i, 'count="1"') }, :format => :plain).to_i
-        keys = xml.find("/Query/Dataset/Attribute").map { |attribute| attribute['name'] }
-        FasterCSV.parse(csv) { |values| rows << Hash[*keys.zip(values).flatten] }
+      csv = post('/', :body => { :query => xml.to_s, :format => :plain}).to_s
+      count += post('/', :body => { :query => xml.to_s.gsub(/count="."/i, 'count="1"') }, :format => :plain).to_i
+      keys = xml.find("/Query/Dataset/Attribute").map { |attribute| attribute['name'] }
+      FasterCSV.parse(csv) { |values| rows << Hash[*keys.zip(values).flatten] }
     else
       panc_dataset_name = dataset_name[0..-5]+'panc'
       brst_dataset_name = dataset_name[0..-5]+'brst'
       if cancer_type
         # one query
         dataset_name = dataset_name[0..-5]+{ 'pancreatic' => 'panc', 'breast' => 'brst' }[cancer_type]
-        csv = post('/', :body => { :query => xml.to_s.gsub(original_dataset_name, dataset_name), :format => :plain}).to_s
-        count += post('/', :body => { :query => xml.to_s.gsub(/count="."/i, 'count="1"') }, :format => :plain).to_i
+        q = xml.to_s.gsub(original_dataset_name, dataset_name)
+        q = reactomize_query(q, original_dataset_name)
+        csv = post('/', :body => { :query => q, :format => :plain}).to_s
+        count += post('/', :body => { :query => q.gsub(/count="."/i, 'count="1"') }, :format => :plain).to_i
+        xml = XML::Document.string(q)
         keys = xml.find("/Query/Dataset/Attribute").map { |attribute| attribute['name'] }
         FasterCSV.parse(csv) { |values| rows << Hash[*keys.zip(values).flatten] }
         rows.each { |row| row['cancer_type'] = cancer_type } if cancer_type_attribute_requested
       else
         # union of two queries
         # panc rows
-        csv = post('/', :body => { :query => xml.to_s.gsub(original_dataset_name, panc_dataset_name), :format => :plain}).to_s
-        count += post('/', :body => { :query => xml.to_s.gsub(/count="."/i, 'count="1"') }, :format => :plain).to_i
+        q = xml.to_s.gsub(original_dataset_name, panc_dataset_name)
+        q = reactomize_query(q, original_dataset_name)
+        csv = post('/', :body => { :query => q, :format => :plain}).to_s
+        count += post('/', :body => { :query => q.gsub(/count="."/i, 'count="1"') }, :format => :plain).to_i
+        xml = XML::Document.string(q)
         keys = xml.find("/Query/Dataset/Attribute").map { |attribute| attribute['name'] }
         FasterCSV.parse(csv) { |values| rows << Hash[*keys.zip(values).flatten] }
         rows.each { |row| row['cancer_type'] = 'pancreatic' unless row['cancer_type'] } if cancer_type_attribute_requested
 
         # brst rows
-        csv = post('/', :body => { :query => xml.to_s.gsub(original_dataset_name, brst_dataset_name), :format => :plain}).to_s
-        count += post('/', :body => { :query => xml.to_s.gsub(/count="."/i, 'count="1"') }, :format => :plain).to_i
+        q = xml.to_s.gsub(original_dataset_name, brst_dataset_name)
+        q = reactomize_query(q, original_dataset_name)
+        csv = post('/', :body => { :query => q, :format => :plain}).to_s
+        count += post('/', :body => { :query => q.gsub(/count="."/i, 'count="1"') }, :format => :plain).to_i
+        xml = XML::Document.string(q)
         keys = xml.find("/Query/Dataset/Attribute").map { |attribute| attribute['name'] }
         FasterCSV.parse(csv) { |values| rows << Hash[*keys.zip(values).flatten] }
         rows.each { |row| row['cancer_type'] = 'breast' unless row['cancer_type'] } if cancer_type_attribute_requested
@@ -120,4 +129,67 @@ class MartRest
     get('/', :query => { :type => 'configuration', :dataset => dataset }, :format => :xml)
   end
 
+
+  private
+
+  def self.reactomize_query(query, dataset_name)
+
+    xml = XML::Document.string(query)
+
+    attributes = xml.find("/Query/Dataset/Attribute").map { |attribute| attribute['name'] }
+    reactome_attributes = []
+    attributes_reactome_dataset_name = nil
+
+    filters = xml.find("/Query/Dataset/Filter").map { |filter| filter['name'] }
+    reactome_filters = []
+    filters_reactome_dataset_name = nil
+
+    ms = MartSoap.new
+    ms.attributes(dataset_name).each { |root|
+      root[:groups].each { |group|
+        if group[:name] == 'reactome'
+          group[:collections].each { |collection|
+            if collection[:name] =~ /^\S*(pathway|reaction|interaction|complex)\S*$/i
+              collection[:attributes].each { |attribute|
+                if (attributes.include? attribute[:name]) && !(reactome_attributes.include? attribute[:name])
+                  reactome_attributes << attribute
+                  attributes_reactome_dataset_name = $1
+                  xml.find_first("/Query/Dataset/Attribute[@name='#{attribute[:name]}']").remove!
+                end
+              }
+            end
+          }
+        end
+      }
+    }
+    ms.filters(dataset_name).each { |root|
+      root[:groups].each { |group|
+        if group[:name] == 'reactome'
+          group[:collections].each { |collection|
+            if collection[:name] =~ /^\S*(pathway|reaction|interaction|complex)\S*$/i
+              collection[:filters].each { |filter|
+                if (filters.include? filter[:name]) && !(reactome_filters.include? filter[:name])
+                  if value = xml.find_first("/Query/Dataset/Filter[@name='#{filter[:name]}']")[:value]
+                    reactome_filters << { :name => filter[:name], :value => value } if value
+                    filters_reactome_dataset_name = $1
+                  end
+                  xml.find_first("/Query/Dataset/Filter[@name='#{filter[:name]}']").remove!
+                end
+              }
+            end
+          }
+        end
+      }
+    }
+
+    if (attributes_reactome_dataset_name || filters_reactome_dataset_name)
+      reactome_dataset = "<Dataset name=\"#{attributes_reactome_dataset_name || filters_reactome_dataset_name}\" interface=\"default\">"
+      reactome_attributes.each { |attribute| reactome_dataset += "<Attribute name=\"#{attribute[:name]}\"/>" }
+      reactome_filters.each { |filter| reactome_dataset += "<Filter name=\"#{filter[:name]}\" value=\"#{filter[:value]}\"/>" }
+      reactome_dataset += "</Dataset>"
+      query = xml.to_s.gsub(/(<Query.*>)/i, '\1'+reactome_dataset)
+    end
+    puts query
+    return query
+  end
 end
