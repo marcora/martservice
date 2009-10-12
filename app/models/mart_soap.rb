@@ -1,7 +1,7 @@
 require 'handsoap'
 
 MARTSOAP_ENDPOINT = {
-  :uri => 'http://www.biomart.org:80/biomart/martsoap',
+  :uri => 'http://bm-test.res.oicr.on.ca:9009/biomart/martsoap',
   :version => 1
 }
 
@@ -75,7 +75,7 @@ class MartSoap < Handsoap::Service
   endpoint MARTSOAP_ENDPOINT
 
   on_create_document do |doc|
-    doc.alias 'ns', "http://www.biomart.org:80/MartServiceSoap"
+    doc.alias 'ns', "http://bm-test.res.oicr.on.ca:9009/MartServiceSoap"
   end
 
   def marts()
@@ -109,7 +109,7 @@ class MartSoap < Handsoap::Service
 
   private
 
-  def ns; { 'ns' => 'http://www.biomart.org:80/MartServiceSoap' }; end
+  def ns; { 'ns' => "http://bm-test.res.oicr.on.ca:9009/MartServiceSoap" }; end
 
   # marts
 
