@@ -5,7 +5,7 @@ require 'faster_csv'
 class MartRest
   include HTTParty
 
-  base_uri 'http://bm-test.res.oicr.on.ca:9009/biomart/martservice'
+  base_uri 'http://www.biomart.org:80/biomart/martservice'
   # http_proxy 'wwwcache', 3128 # enable on pweb-3a
 
   def self.query(xml)
