@@ -43,7 +43,7 @@ end
 class MartSoap < Handsoap::Service
 
   def create_static_json_files
-    select_dataset_menu = { :text => 'BioMart', :iconCls => 'biomart_icon', :menu => [] }
+    select_dataset_menu = { :text => 'BioMart', :iconCls => 'biomart-icon', :menu => [] }
 
     self.marts().each_with_index { |mart, index|
       select_dataset_menu[:menu] << mart.merge!({ :itemId => mart[:name], :text => mart[:display_name] || mart[:name], :iconCls => 'mart_icon', :menu => [] })
