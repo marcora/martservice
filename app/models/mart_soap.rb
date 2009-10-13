@@ -1,4 +1,5 @@
 require 'handsoap'
+require 'random_data'
 
 MARTSOAP_ENDPOINT = {
   :uri => 'http://www.biomart.org:80/biomart/martsoap',
@@ -46,28 +47,63 @@ class MartSoap < Handsoap::Service
     select_dataset_menu = { :text => 'BioMart', :iconCls => 'biomart-icon', :menu => [] }
 
     self.marts().each_with_index { |mart, index|
-      select_dataset_menu[:menu] << mart.merge!({ :itemId => mart[:name], :text => mart[:display_name] || mart[:name], :iconCls => 'mart_icon', :menu => [] })
+      description = Random.paragraphs 1
+      keywords = []
+      10.times { keywords << Random.country }
+      select_dataset_menu[:menu] << mart.merge!({ :itemId => mart[:name], :text => mart[:display_name] || mart[:name], :iconCls => 'mart_icon', :menu => [], :description => description, :keywords => keywords.uniq })
 
       self.datasets(mart[:name]).each { |dataset|
+        description = Random.paragraphs 1
+        keywords = []
+        10.times { keywords << Random.city }
         select_dataset_menu[:menu][index][:menu] << dataset.merge!({ :itemId => dataset[:name],
                                                                      :text => dataset[:display_name] || dataset[:name],
-                                                                     :iconCls => 'dataset_icon',
+                                                                     :iconCls => 'dataset-icon',
                                                                      :mart_name => mart[:name],
                                                                      :mart_display_name => mart[:display_name] || mart[:name],
                                                                      :dataset_name => dataset[:name],
-                                                                     :dataset_display_name => dataset[:display_name] || dataset[:name] })
+                                                                     :dataset_display_name => dataset[:display_name] || dataset[:name],
+                                                                     :description => description,
+                                                                     :keywords => keywords })
 
         # for each dataset write filters and attributes static json files
         filename = "#{JSON_DIR}/#{mart[:name]}.#{dataset[:name]}.json"
         json = { :filters => self.filters(dataset[:name]).map { |filter| filterize(filter) }, :attributes => self.attributes(dataset[:name]).map { |attribute| attributize(attribute) } }.to_json
         File.open(filename, 'w') { |f| f.write(json) }
       }
-      ## break if index > 1
+      # break if index > 4
     }
 
     # write select_dataset_menu static json file
     filename = "#{JSON_DIR}/select_dataset_menu.json"
     json = select_dataset_menu.to_json
+    File.open(filename, 'w') { |f| f.write(json) }
+  end
+
+  def create_datasets_json_store
+    store = { :rows => [] }
+
+    self.marts().each_with_index { |mart, index|
+      self.datasets(mart[:name]).each { |dataset|
+        description = Random.paragraphs 1
+        keywords = []
+        10.times { keywords << Random.city }
+        store[:rows] << dataset.merge!({                                          :mart_name => mart[:name],
+                                         :mart_display_name => mart[:display_name] || mart[:name],
+                                         :dataset => dataset[:name],
+                                         :dataset_display_name => dataset[:display_name] || dataset[:name],
+                                         :iconCls => 'dataset-icon',
+                                         :dataset_name => dataset[:name],
+                                         :dataset_display_name => dataset[:display_name] || dataset[:name],
+                                         :description => description,
+                                         :keywords => keywords })
+      }
+      # break if index > 1
+    }
+
+    # write datasets json store
+    filename = "#{JSON_DIR}/datasets.json"
+    json = store.to_json
     File.open(filename, 'w') { |f| f.write(json) }
   end
 
