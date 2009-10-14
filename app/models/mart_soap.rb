@@ -115,7 +115,7 @@ class MartSoap < Handsoap::Service
       self.datasets(mart[:name]).each { |dataset|
         description = Random.paragraphs 1
         keywords = KEYWORDS.randomly_pick rand(5)
-        store[:rows] << dataset.merge!({                                          :mart_name => mart[:name],
+        store[:rows] << dataset.merge!({ :mart_name => mart[:name],
                                          :mart_display_name => mart[:display_name] || mart[:name],
                                          :dataset => dataset[:name],
                                          :dataset_display_name => dataset[:display_name] || dataset[:name],
@@ -123,7 +123,8 @@ class MartSoap < Handsoap::Service
                                          :dataset_name => dataset[:name],
                                          :dataset_display_name => dataset[:display_name] || dataset[:name],
                                          :description => description,
-                                         :keywords => keywords })
+                                         :keywords => keywords,
+                                         :fulltext => [(dataset[:display_name] || dataset[:name]), (mart[:display_name] || mart[:name]), description, keywords].flatten.join(' ') })
       }
       # break if index > 1
     }
