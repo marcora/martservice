@@ -1,5 +1,5 @@
 STOP_WORDS = ["a","able","about","across","after","all","almost","also","am","among","an","and","any","are","as","at","be","because","been","but","by","can","cannot","could","dear","did","do","does","either","else","ever","every","for","from","get","got","had","has","have","he","her","hers","him","his","how","however","i","if","in","into","is","it","its","just","least","let","like","likely","may","me","might","most","must","my","neither","no","nor","not","of","off","often","on","only","or","other","our","own","rather","said","say","says","she","should","since","so","some","than","that","the","their","them","then","there","these","they","this","tis","to","too","twas","us","wants","was","we","were","what","when","where","which","while","who","whom","why","will","with","would","yet","you","your"]
-KEYWORDS = %w{ genes transcripts proteins snps variations xenopus drosophila mouse rat worm celegans yeast bacteria ecoli peptides structures ontology expression anatomy physiology }
+KEYWORDS = %w{ genes transcripts proteins snps variations xenopus laevis drosophila melanogaster mouse rat worm caenorhabditis elegans yeast saccharomyces cerevisiae bacteria escherichia coli peptides structures ontology expression anatomy physiology mus musculus homo sapiens rattus norvegicus human danio rerio zebrafish }
 
 class Array
   # If +number+ is greater than the size of the array, the method
@@ -67,12 +67,12 @@ class MartSoap < Handsoap::Service
 
     self.marts().each_with_index { |mart, index|
       description = Random.paragraphs 1
-      keywords = KEYWORDS.randomly_pick rand(5)
+      keywords = KEYWORDS.randomly_pick rand(7)
       select_dataset_menu[:menu] << mart.merge!({ :itemId => mart[:name], :text => mart[:display_name] || mart[:name], :iconCls => 'mart_icon', :menu => [], :description => description, :keywords => keywords.uniq })
 
       self.datasets(mart[:name]).each { |dataset|
         description = Random.paragraphs 1
-        keywords = KEYWORDS.randomly_pick rand(5)
+        keywords = KEYWORDS.randomly_pick rand(7)
         select_dataset_menu[:menu][index][:menu] << dataset.merge!({ :itemId => dataset[:name],
                                                                      :text => dataset[:display_name] || dataset[:name],
                                                                      :iconCls => 'dataset-icon',
@@ -104,7 +104,7 @@ class MartSoap < Handsoap::Service
     self.marts().each_with_index { |mart, index|
       self.datasets(mart[:name]).each { |dataset|
         description = Random.paragraphs 1
-        keywords = KEYWORDS.randomly_pick rand(5)
+        keywords = KEYWORDS.randomly_pick rand(7)
         store[:rows] << dataset.merge!({ :mart_name => mart[:name],
                                          :mart_display_name => mart[:display_name] || mart[:name],
                                          :dataset => dataset[:name],
