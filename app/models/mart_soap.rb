@@ -1,3 +1,32 @@
+class Array
+  # If +number+ is greater than the size of the array, the method
+  # will simply return the array itself sorted randomly
+  def randomly_pick(number)
+    sort_by{ rand }.slice(0...number)
+  end
+end
+
+KEYWORDS = ['genes',
+            'transcripts',
+            'proteins',
+            'snps',
+            'variations',
+            'xenopus',
+            'drosophila',
+            'mouse',
+            'rat',
+            'worm',
+            'celegans',
+            'yeast',
+            'bacteria',
+            'ecoli',
+            'peptides',
+            'structures',
+            'ontology',
+            'expression',
+            'anatomy',
+            'physiology']
+
 require 'handsoap'
 require 'random_data'
 
@@ -48,14 +77,12 @@ class MartSoap < Handsoap::Service
 
     self.marts().each_with_index { |mart, index|
       description = Random.paragraphs 1
-      keywords = []
-      10.times { keywords << Random.country }
+      keywords = KEYWORDS.randomly_pick rand(5)
       select_dataset_menu[:menu] << mart.merge!({ :itemId => mart[:name], :text => mart[:display_name] || mart[:name], :iconCls => 'mart_icon', :menu => [], :description => description, :keywords => keywords.uniq })
 
       self.datasets(mart[:name]).each { |dataset|
         description = Random.paragraphs 1
-        keywords = []
-        10.times { keywords << Random.city }
+        keywords = KEYWORDS.randomly_pick rand(5)
         select_dataset_menu[:menu][index][:menu] << dataset.merge!({ :itemId => dataset[:name],
                                                                      :text => dataset[:display_name] || dataset[:name],
                                                                      :iconCls => 'dataset-icon',
@@ -81,13 +108,13 @@ class MartSoap < Handsoap::Service
   end
 
   def create_datasets_json_store
+
     store = { :rows => [] }
 
     self.marts().each_with_index { |mart, index|
       self.datasets(mart[:name]).each { |dataset|
         description = Random.paragraphs 1
-        keywords = []
-        10.times { keywords << Random.city }
+        keywords = KEYWORDS.randomly_pick rand(5)
         store[:rows] << dataset.merge!({                                          :mart_name => mart[:name],
                                          :mart_display_name => mart[:display_name] || mart[:name],
                                          :dataset => dataset[:name],
