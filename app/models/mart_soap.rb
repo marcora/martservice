@@ -103,18 +103,20 @@ class MartSoap < Handsoap::Service
 
     self.marts().each_with_index { |mart, index|
       self.datasets(mart[:name]).each { |dataset|
-        description = Random.paragraphs 1
-        keywords = KEYWORDS.randomly_pick rand(7)
-        store[:rows] << dataset.merge!({ :mart_name => mart[:name],
-                                         :mart_display_name => mart[:display_name] || mart[:name],
-                                         :dataset => dataset[:name],
-                                         :dataset_display_name => dataset[:display_name] || dataset[:name],
-                                         :iconCls => 'dataset-icon',
-                                         :dataset_name => dataset[:name],
-                                         :dataset_display_name => dataset[:display_name] || dataset[:name],
-                                         :description => description,
-                                         :keywords => keywords,
-                                         :fulltext => normalize([(dataset[:display_name] || dataset[:name]), (mart[:display_name] || mart[:name]), description, keywords].flatten.join(' ')) })
+        if dataset[:display_name] =~ /^[A-Z]/ || mart[:name] =~ /reactome/i # to weed out stupid biomart.org datasets
+          description = Random.paragraphs 1
+          keywords = KEYWORDS.randomly_pick rand(7)
+          store[:rows] << dataset.merge!({ :mart_name => mart[:name],
+                                           :mart_display_name => mart[:display_name] || mart[:name],
+                                           :dataset => dataset[:name],
+                                           :dataset_display_name => dataset[:display_name] || dataset[:name],
+                                           :iconCls => 'dataset-icon',
+                                           :dataset_name => dataset[:name],
+                                           :dataset_display_name => dataset[:display_name] || dataset[:name],
+                                           :description => description,
+                                           :keywords => keywords,
+                                           :fulltext => normalize([(dataset[:display_name] || dataset[:name]), (mart[:display_name] || mart[:name]), description, keywords].flatten.join(' ')) })
+        end
       }
       # break if index > 1
     }
