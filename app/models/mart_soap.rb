@@ -1,5 +1,48 @@
-STOP_WORDS = ["a","able","about","across","after","all","almost","also","am","among","an","and","any","are","as","at","be","because","been","but","by","can","cannot","could","dear","did","do","does","either","else","ever","every","for","from","get","got","had","has","have","he","her","hers","him","his","how","however","i","if","in","into","is","it","its","just","least","let","like","likely","may","me","might","most","must","my","neither","no","nor","not","of","off","often","on","only","or","other","our","own","rather","said","say","says","she","should","since","so","some","than","that","the","their","them","then","there","these","they","this","tis","to","too","twas","us","wants","was","we","were","what","when","where","which","while","who","whom","why","will","with","would","yet","you","your"]
-KEYWORDS = ["genes","transcripts","proteins","snps","variations","xenopus laevis","drosophila melanogaster","mouse","rat","worm","caenorhabditis elegans","yeast","saccharomyces cerevisiae","bacteria","escherichia coli","peptides","structures","ontology","expression","anatomy","physiology","mus musculus","homo sapiens","rattus norvegicus","human","danio rerio","zebrafish", "celegans", "ecoli"]
+DESCRIPTION = "Praesent vitae metus ut ligula congue gravida eu ac odio. Sed porttitor massa ac lectus interdum aliquam. Suspendisse consequat egestas suscipit. Aliquam venenatis elementum velit at ornare. Aliquam erat volutpat. Suspendisse potenti. Vivamus euismod sodales mi, eget adipiscing quam fermentum nec. Morbi ac leo libero. Quisque commodo mollis molestie. Morbi sodales ante et quam facilisis faucibus. Vestibulum urna turpis, dapibus a hendrerit a, luctus at orci."
+STOP_WORDS = [ "a","able","about","across","after","all","almost","also","am","among","an","and","any","are","as","at","be","because","been","but","by","can","cannot","could","dear","did","do","does","either","else","ever","every","for","from","get","got","had","has","have","he","her","hers","him","his","how","however","i","if","in","into","is","it","its","just","least","let","like","likely","may","me","might","most","must","my","neither","no","nor","not","of","off","often","on","only","or","other","our","own","rather","said","say","says","she","should","since","so","some","than","that","the","their","them","then","there","these","they","this","tis","to","too","twas","us","wants","was","we","were","what","when","where","which","while","who","whom","why","will","with","would","yet","you","your" ]
+KEYWORDS = [ ["genes"],
+             ["DNA"],
+             ["RNA"],
+             ["transcripts"],
+             ["proteins"],
+             ["genomics"],
+             ["proteomics"],
+             ["features"],
+             ["snps", "variations"],
+             ["peptides"],
+             ["structures"],
+             ["ontology"],
+             ["expression"],
+             ["anatomy"],
+             ["physiology"],
+             ["reaction"],
+             ["interaction", "complex"],
+             ["pathway"],
+             ["frog", "xenopus laevis"],
+             ["frog", "xenopus tropicalis"],
+             ["fly", "drosophila"],
+             ["fly", "drosophila melanogaster"],
+             ["mouse", "mus musculus"],
+             ["worm", "caenorhabditis elegans"],
+             ["worm", "caenorhabditis"],
+             ["yeast", "saccharomyces cerevisiae"],
+             ["bacterial"],
+             ["monera"],
+             ["fungi"],
+             ["plantae"],
+             ["animalia", "metazoa"],
+             ["protista"],
+             ["escherichia coli", "ecoli"],
+             ["guinea pig", "cavia porcellus"],
+             ["pig", "sus scrofa"],
+             ["cow", "bos taurus"],
+             ["dog", "canis familiaris"],
+             ["cat", "felis catus"],
+             ["chicken", "gallus gallus"],
+             ["horse", "equus caballus"],
+             ["human", "homo sapiens"],
+             ["rat", "rattus norvegicus"],
+             ["zebrafish", "danio rerio"] ]
 
 class Array
   # If +number+ is greater than the size of the array, the method
@@ -18,7 +61,6 @@ def normalize(fulltext)
 end
 
 require 'handsoap'
-require 'random_data'
 
 MARTSOAP_ENDPOINT = {
   :uri => 'http://www.biomart.org:80/biomart/martsoap',
@@ -62,68 +104,82 @@ end
 
 class MartSoap < Handsoap::Service
 
-  def create_static_json_files
+  def generate_static_json_files
     select_dataset_menu = { :text => 'BioMart', :iconCls => 'biomart-icon', :menu => [] }
+    datasets = { :rows => [] }
 
     self.marts().each_with_index { |mart, index|
-      description = Random.paragraphs 1
-      keywords = KEYWORDS.randomly_pick rand(7)
-      select_dataset_menu[:menu] << mart.merge!({ :itemId => mart[:name], :text => mart[:display_name] || mart[:name], :iconCls => 'mart_icon', :menu => [], :description => description, :keywords => keywords.uniq })
+      select_dataset_menu[:menu] << mart.merge!({ :itemId => mart[:name], :text => mart[:display_name] || mart[:name], :iconCls => 'mart_icon', :menu => [] })
 
       self.datasets(mart[:name]).each { |dataset|
-        description = Random.paragraphs 1
-        keywords = KEYWORDS.randomly_pick rand(7)
-        select_dataset_menu[:menu][index][:menu] << dataset.merge!({ :itemId => dataset[:name],
-                                                                     :text => dataset[:display_name] || dataset[:name],
-                                                                     :iconCls => 'dataset-icon',
-                                                                     :mart_name => mart[:name],
-                                                                     :mart_display_name => mart[:display_name] || mart[:name],
-                                                                     :dataset_name => dataset[:name],
-                                                                     :dataset_display_name => dataset[:display_name] || dataset[:name],
-                                                                     :description => description,
-                                                                     :keywords => keywords })
+        if dataset[:display_name] =~ /^[A-Z]/ && (mart[:display_name] =~ /reactome/i || mart[:display_name] =~ /ensembl/i || mart[:display_name] =~ /msd/i || mart[:display_name] =~ /pride/i) # to weed out stupid biomart.org datasets
+          keywords = []
+          KEYWORDS.each { |synset| synset.each { |keyword| keywords << synset if (dataset[:display_name] + mart[:display_name] + normalize([dataset[:display_name], mart[:display_name]].join(' '))) =~ Regexp.new(keyword, true) }}
+          case mart[:display_name]
+          when /reactome/i
+            keywords << 'reactome'
+          when /ensembl/i
+            keywords << 'ensembl'
+          when /msd/i
+            keywords << 'msd'
+            keywords << 'proteins'
+            keywords << 'structures'
+          when /pride/i
+            keywords << 'pride'
+            keywords << 'peptides'
+            keywords << 'proteomics'
+            keywords << 'identifications'
+            keywords << 'proteins'
+          end
+          keywords.flatten! unless keywords.empty?
+          keywords.uniq! unless keywords.empty?
+          select_dataset_menu[:menu][index][:menu] << dataset.merge!({ :itemId => dataset[:name],
+                                                                       :text => dataset[:display_name] || dataset[:name],
+                                                                       :iconCls => 'dataset-icon',
+                                                                       :mart_name => mart[:name],
+                                                                       :mart_display_name => mart[:display_name] || mart[:name],
+                                                                       :dataset_name => dataset[:name],
+                                                                       :dataset_display_name => dataset[:display_name] || dataset[:name],
+                                                                       :description => DESCRIPTION,
+                                                                       :keywords => keywords })
+          datasets[:rows] << dataset.merge!({ :iconCls => 'dataset-icon',
+                                              :mart_name => mart[:name],
+                                              :mart_display_name => mart[:display_name] || mart[:name],
+                                              :dataset => dataset[:name],
+                                              :dataset_display_name => dataset[:display_name] || dataset[:name],
+                                              :description => DESCRIPTION,
+                                              :keywords => keywords,
+                                              :fulltext => normalize([(dataset[:display_name] || dataset[:name]), (mart[:display_name] || mart[:name]), DESCRIPTION, keywords].flatten.join(' ')) })
 
-        # for each dataset write filters and attributes static json files
-        filename = "#{JSON_DIR}/#{mart[:name]}.#{dataset[:name]}.json"
-        json = { :filters => self.filters(dataset[:name]).map { |filter| filterize(filter) }, :attributes => self.attributes(dataset[:name]).map { |attribute| attributize(attribute) } }.to_json
-        File.open(filename, 'w') { |f| f.write(json) }
+          # sort datasets by mart_name and dataset_name
+          datasets[:rows] = datasets[:rows].sort_by { |row| row[:mart_display_name] + ' ' + row[:dataset_display_name] }
+
+          # for each dataset write a static json files
+          filename = "#{JSON_DIR}/#{mart[:name]}.#{dataset[:name]}.json"
+          json = {
+            :iconCls => 'dataset-icon',
+            :mart_name => mart[:name],
+            :mart_display_name => mart[:display_name] || mart[:name],
+            :dataset_name => dataset[:name],
+            :dataset_display_name => dataset[:display_name] || dataset[:name],
+            :description => DESCRIPTION,
+            :keywords => keywords,
+            :filters => self.filters(dataset[:name]).map { |filter| filterize(filter) },
+            :attributes => self.attributes(dataset[:name]).map { |attribute| attributize(attribute) } }.to_json
+          File.open(filename, 'w') { |f| f.write(json) }
+        end
       }
-      # break if index > 4
+      # break if index > 0
     }
 
     # write select_dataset_menu static json file
     filename = "#{JSON_DIR}/select_dataset_menu.json"
     json = select_dataset_menu.to_json
     File.open(filename, 'w') { |f| f.write(json) }
-  end
 
-  def create_datasets_json_store
-
-    store = { :rows => [] }
-
-    self.marts().each_with_index { |mart, index|
-      self.datasets(mart[:name]).each { |dataset|
-        if dataset[:display_name] =~ /^[A-Z]/ || mart[:name] =~ /reactome/i # to weed out stupid biomart.org datasets
-          description = Random.paragraphs 1
-          keywords = KEYWORDS.randomly_pick rand(7)
-          store[:rows] << dataset.merge!({ :mart_name => mart[:name],
-                                           :mart_display_name => mart[:display_name] || mart[:name],
-                                           :dataset => dataset[:name],
-                                           :dataset_display_name => dataset[:display_name] || dataset[:name],
-                                           :iconCls => 'dataset-icon',
-                                           :dataset_name => dataset[:name],
-                                           :dataset_display_name => dataset[:display_name] || dataset[:name],
-                                           :description => description,
-                                           :keywords => keywords,
-                                           :fulltext => normalize([(dataset[:display_name] || dataset[:name]), (mart[:display_name] || mart[:name]), description, keywords].flatten.join(' ')) })
-        end
-      }
-      # break if index > 1
-    }
-
-    # write datasets json store
+    # write datasets static json file
     filename = "#{JSON_DIR}/datasets.json"
-    json = store.to_json
+    json = datasets.to_json
     File.open(filename, 'w') { |f| f.write(json) }
   end
 
