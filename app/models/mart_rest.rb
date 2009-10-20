@@ -37,7 +37,6 @@ class MartRest
         }
       }
     }
-
     return { :columns => columns, :fields => fields, :rows => rows, :count => count }
   end
 

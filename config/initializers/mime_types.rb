@@ -8,6 +8,6 @@ Mime::Type.register 'text/x-java', :java
 Mime::Type.register 'text/x-perl', :pl
 Mime::Type.register 'text/x-python', :py
 Mime::Type.register 'text/x-ruby', :rb
-Mime::Type.register 'text/comma-separated-values', :csv
+# Mime::Type.register 'text/comma-separated-values', :csv
 Mime::Type.register 'text/tab-separated-values', :tsv
 Mime::Type.register 'text/plain', :url

@@ -18,21 +18,29 @@ KEYWORDS = [ ["genes"],
              ["reaction"],
              ["interaction", "complex"],
              ["pathway"],
-             ["frog", "xenopus laevis"],
-             ["frog", "xenopus tropicalis"],
+             ["frog", "xenopus"],
+             ["xenopus laevis"],
+             ["xenopus tropicalis"],
              ["fly", "drosophila"],
-             ["fly", "drosophila melanogaster"],
+             ["drosophila melanogaster"],
              ["mouse", "mus musculus"],
-             ["worm", "caenorhabditis elegans"],
+             ["caenorhabditis elegans", "celegans"],
              ["worm", "caenorhabditis"],
-             ["yeast", "saccharomyces cerevisiae"],
-             ["bacterial"],
-             ["monera"],
-             ["fungi"],
-             ["plantae"],
-             ["animalia", "metazoa"],
-             ["protista"],
-             ["escherichia coli", "ecoli"],
+             ["saccharomyces cerevisiae"],
+             ["yeast", "budding", "saccharomyces"],
+             ["schizosaccharomyces pombe"],
+             ["yeast", "fission", "schizosaccharomyces"],
+             ["bacteria", "bacterial"],
+             ["virus", "viral"],
+             ["bacteria", "bacterial", "escherichia coli", "ecoli"],
+             ["arabidopsis thaliana"],
+             ["fungi", "fungal"],
+             ["plant"],
+             ["cress", "arabidopsis"],
+             ["oryza sativa"],
+             ["rice", "oryza"],
+             ["zea mays"],
+             ["maize", "corn", "zea"],
              ["guinea pig", "cavia porcellus"],
              ["pig", "sus scrofa"],
              ["cow", "bos taurus"],
@@ -43,14 +51,6 @@ KEYWORDS = [ ["genes"],
              ["human", "homo sapiens"],
              ["rat", "rattus norvegicus"],
              ["zebrafish", "danio rerio"] ]
-
-class Array
-  # If +number+ is greater than the size of the array, the method
-  # will simply return the array itself sorted randomly
-  def randomly_pick(number)
-    sort_by{ rand }.slice(0...number)
-  end
-end
 
 def normalize(fulltext)
   normalized_words = []
@@ -108,67 +108,101 @@ class MartSoap < Handsoap::Service
     select_dataset_menu = { :text => 'BioMart', :iconCls => 'biomart-icon', :menu => [] }
     datasets = { :rows => [] }
 
-    self.marts().each_with_index { |mart, index|
-      select_dataset_menu[:menu] << mart.merge!({ :itemId => mart[:name], :text => mart[:display_name] || mart[:name], :iconCls => 'mart_icon', :menu => [] })
-
-      self.datasets(mart[:name]).each { |dataset|
-        if dataset[:display_name] =~ /^[A-Z]/ && (mart[:display_name] =~ /reactome/i || mart[:display_name] =~ /ensembl/i || mart[:display_name] =~ /msd/i || mart[:display_name] =~ /pride/i) # to weed out stupid biomart.org datasets
-          keywords = []
-          KEYWORDS.each { |synset| synset.each { |keyword| keywords << synset if (dataset[:display_name] + mart[:display_name] + normalize([dataset[:display_name], mart[:display_name]].join(' '))) =~ Regexp.new(keyword, true) }}
-          case mart[:display_name]
-          when /reactome/i
-            keywords << 'reactome'
-          when /ensembl/i
-            keywords << 'ensembl'
-          when /msd/i
-            keywords << 'msd'
-            keywords << 'proteins'
-            keywords << 'structures'
-          when /pride/i
-            keywords << 'pride'
-            keywords << 'peptides'
-            keywords << 'proteomics'
-            keywords << 'identifications'
-            keywords << 'proteins'
-          end
-          keywords.flatten! unless keywords.empty?
-          keywords.uniq! unless keywords.empty?
-          select_dataset_menu[:menu][index][:menu] << dataset.merge!({ :itemId => dataset[:name],
-                                                                       :text => dataset[:display_name] || dataset[:name],
-                                                                       :iconCls => 'dataset-icon',
-                                                                       :mart_name => mart[:name],
-                                                                       :mart_display_name => mart[:display_name] || mart[:name],
-                                                                       :dataset_name => dataset[:name],
-                                                                       :dataset_display_name => dataset[:display_name] || dataset[:name],
-                                                                       :description => DESCRIPTION,
-                                                                       :keywords => keywords })
-          datasets[:rows] << dataset.merge!({ :iconCls => 'dataset-icon',
-                                              :mart_name => mart[:name],
-                                              :mart_display_name => mart[:display_name] || mart[:name],
-                                              :dataset => dataset[:name],
-                                              :dataset_display_name => dataset[:display_name] || dataset[:name],
-                                              :description => DESCRIPTION,
-                                              :keywords => keywords,
-                                              :fulltext => normalize([(dataset[:display_name] || dataset[:name]), (mart[:display_name] || mart[:name]), DESCRIPTION, keywords].flatten.join(' ')) })
-
-          # sort datasets by mart_name and dataset_name
-          datasets[:rows] = datasets[:rows].sort_by { |row| row[:mart_display_name] + ' ' + row[:dataset_display_name] }
-
-          # for each dataset write a static json files
-          filename = "#{JSON_DIR}/#{mart[:name]}.#{dataset[:name]}.json"
-          json = {
-            :iconCls => 'dataset-icon',
-            :mart_name => mart[:name],
-            :mart_display_name => mart[:display_name] || mart[:name],
-            :dataset_name => dataset[:name],
-            :dataset_display_name => dataset[:display_name] || dataset[:name],
-            :description => DESCRIPTION,
-            :keywords => keywords,
-            :filters => self.filters(dataset[:name]).map { |filter| filterize(filter) },
-            :attributes => self.attributes(dataset[:name]).map { |attribute| attributize(attribute) } }.to_json
-          File.open(filename, 'w') { |f| f.write(json) }
+    index = 0
+    self.marts().each { |mart|
+      if (!mart[:display_name] =~ /ensembl.*(genomic features|ontology|sequence)/i) || (mart[:display_name] =~ /reactome/i) || (mart[:display_name] =~ /ensembl/i) || (mart[:display_name] =~ /msd/i) || (mart[:display_name] =~ /pride/i) # to weed out stupid biomart.org marts
+        mart_has_datasets = false
+        mart_keywords = []
+        KEYWORDS.each { |synset| synset.each { |keyword| mart_keywords << synset if mart[:display_name] =~ Regexp.new(keyword, true) } }
+        case mart[:display_name]
+        when /reactome/i
+          mart_keywords << 'reactome'
+        when /ensembl/i
+          mart_keywords << 'ensembl'
+        when /msd/i
+          mart_keywords << 'msd'
+          mart_keywords << 'proteins'
+          mart_keywords << 'structures'
+        when /pride/i
+          mart_keywords << 'pride'
+          mart_keywords << 'peptides'
+          mart_keywords << 'proteomics'
+          mart_keywords << 'identifications'
+          mart_keywords << 'proteins'
         end
-      }
+        mart_keywords = mart_keywords.flatten.compact.uniq
+        select_dataset_menu[:menu] << mart.merge({ :itemId => mart[:name],
+                                                   :text => mart[:display_name] || mart[:name],
+                                                   :iconCls => 'mart_icon',
+                                                   :mart_name => mart[:name],
+                                                   :mart_display_name => mart[:display_name] || mart[:name],
+                                                   :menu => [] })
+        mart_id = rand(36**8).to_s(36)
+        datasets[:rows] << mart.merge({ :itemId => mart[:name],
+                                        :text => mart[:display_name] || mart[:name],
+                                        :iconCls => 'mart_icon',
+                                        :mart_name => mart[:name],
+                                        :mart_display_name => mart[:display_name] || mart[:name],
+                                        :description => DESCRIPTION,
+                                        :keywords => mart_keywords,
+                                        :fulltext => normalize([mart[:display_name] || mart[:name], DESCRIPTION, mart_keywords].flatten.join(' ')),
+                                        :_id => mart_id,
+                                        :_parent => nil,
+                                        :_is_leaf => false })
+        self.datasets(mart[:name]).each { |dataset|
+          if (dataset[:display_name] =~ /^[A-Z]/) || (mart[:display_name] =~ /reactome/i) # to weed out stupid biomart.org datasets
+            print '.' # progress indicator
+            mart_has_datasets = true
+            dataset_keywords = []
+            dataset_keywords.concat mart_keywords # inherit keywords from mart!
+            KEYWORDS.each { |synset| synset.each { |keyword| dataset_keywords << synset if dataset[:display_name] =~ Regexp.new(keyword, true) } }
+            dataset_keywords = dataset_keywords.flatten.compact.uniq
+            select_dataset_menu[:menu][index][:menu] << dataset.merge({ :itemId => dataset[:name],
+                                                                        :text => dataset[:display_name] || dataset[:name],
+                                                                        :iconCls => 'dataset-icon',
+                                                                        :mart_name => mart[:name],
+                                                                        :mart_display_name => mart[:display_name] || mart[:name],
+                                                                        :dataset_name => dataset[:name],
+                                                                        :dataset_display_name => dataset[:display_name] || dataset[:name] })
+            dataset_id = rand(36**8).to_s(36)
+            datasets[:rows] << dataset.merge({ :itemId => dataset[:name],
+                                               :text => dataset[:display_name] || dataset[:name],
+                                               :iconCls => 'dataset-icon',
+                                               :mart_name => mart[:name],
+                                               :mart_display_name => mart[:display_name] || mart[:name],
+                                               :dataset_name => dataset[:name],
+                                               :dataset_display_name => dataset[:display_name] || dataset[:name],
+                                               :description => DESCRIPTION,
+                                               :keywords => dataset_keywords,
+                                               :fulltext => normalize([(dataset[:display_name] || dataset[:name]), (mart[:display_name] || mart[:name]), DESCRIPTION, dataset_keywords].flatten.join(' ')),
+                                               :_id => dataset_id,
+                                               :_parent => mart_id,
+                                               :_is_leaf => true })
+
+            # for each dataset write a static json files
+            filename = "#{JSON_DIR}/#{mart[:name]}.#{dataset[:name]}.json"
+            json = dataset.merge({ :itemId => dataset[:name],
+                                   :text => dataset[:display_name] || dataset[:name],
+                                   :iconCls => 'dataset-icon',
+                                   :mart_name => mart[:name],
+                                   :mart_display_name => mart[:display_name] || mart[:name],
+                                   :dataset_name => dataset[:name],
+                                   :dataset_display_name => dataset[:display_name] || dataset[:name],
+                                   :description => DESCRIPTION,
+                                   :keywords => dataset_keywords,
+                                   :filters => self.filters(dataset[:name]).map { |filter| filterize(filter) },
+                                   :attributes => self.attributes(dataset[:name]).map { |attribute| attributize(attribute) } }).to_json
+            File.open(filename, 'w') { |f| f.write(json) }
+          end
+        }
+        # make 100% sure that mart has datasets because ui is tripped by empty marts
+        if mart_has_datasets
+          index =+ 1
+        else
+          select_dataset_menu[:menu].pop
+          datasets[:rows].pop
+        end
+      end
       # break if index > 0
     }
 
@@ -177,10 +211,15 @@ class MartSoap < Handsoap::Service
     json = select_dataset_menu.to_json
     File.open(filename, 'w') { |f| f.write(json) }
 
+
+    # sort datasets
+    datasets[:rows] = datasets[:rows].sort_by { |row| row[:dataset_display_name] || row[:mart_display_name] }
     # write datasets static json file
     filename = "#{JSON_DIR}/datasets.json"
     json = datasets.to_json
     File.open(filename, 'w') { |f| f.write(json) }
+
+    print ". done!\n" # progress indicator
   end
 
 
