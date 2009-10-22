@@ -47,4 +47,8 @@ Rails::Initializer.run do |config|
   # config.i18n.default_locale = :de
 
   ## config.action_controller.relative_url_root = "/biomart"
+
+  # add rack deflate middleware
+  config.middleware.use Rack::Deflater 
+  
 end
