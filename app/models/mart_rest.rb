@@ -40,11 +40,11 @@ class MartRest
     return { :columns => columns, :fields => fields, :rows => rows, :count => count }
   end
 
-  def self.save_search(xml)
+  def self.save_query(xml)
     xml = XML::Document.string(xml)
     format = xml.find_first("/Query")['formatter'].downcase
-    search = xml.to_s
-    return search, format
+    query = xml.to_s
+    return query, format
   end
 
   def self.save_results(xml)

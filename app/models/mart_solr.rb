@@ -1,8 +1,8 @@
 require 'delsolr'
 
 class MartSolr
-  @@conn = DelSolr::Client.new(:server => 'jweb-2b.ebi.ac.uk', :port => 21240)
-  # @@conn = DelSolr::Client.new(:server => 'localhost', :port => 8983)
+  # @@conn = DelSolr::Client.new(:server => 'jweb-2b.ebi.ac.uk', :port => 21240)
+  @@conn = DelSolr::Client.new(:server => 'localhost', :port => 8983)
 
   def self.search(q, facet_fields=[], filters=[])
     solr_fields = ['pdb_id','title','header','experiment_type','resolution','keywords_concat','space_group','r_work','authors','submission_date','release_date']
