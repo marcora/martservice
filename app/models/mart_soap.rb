@@ -84,7 +84,11 @@ def filterize(filter)
     children = filter[:filters]
     filter.delete(:filters)
   end
-  filter.merge({ :id => rand(36**8).to_s(36), :text => filter[:display_name] || filter[:name], :children => (children.map { |child| filterize(child) } unless children.empty?), :leaf => children.empty? })
+  fulltext = []
+  fulltext << filter[:display_name]
+  fulltext << filter[:name]
+  fulltext << filter[:description]
+  filter.merge({ :id => rand(36**8).to_s(36), :text => filter[:display_name] || filter[:name], :children => (children.map { |child| filterize(child) } unless children.empty?), :fulltext => (normalize(fulltext.compact.uniq.join(' ')) if children.empty?), :leaf => children.empty?, :qtip => filter[:description] || filter[:display_name] || filter[:name], :qtipCfg => { :autoWidth => true, :dismissDelay => 0 } })
 end
 
 def attributize(attribute)
@@ -99,7 +103,11 @@ def attributize(attribute)
     children = attribute[:attributes]
     attribute.delete(:attributes)
   end
-  attribute.merge({ :id => rand(36**8).to_s(36), :text => attribute[:display_name] || attribute[:name], :children => (children.map { |child| attributize(child) } unless children.empty?), :leaf => children.empty? })
+  fulltext = []
+  fulltext << attribute[:display_name]
+  fulltext << attribute[:name]
+  fulltext << attribute[:description]
+  attribute.merge({ :id => rand(36**8).to_s(36), :text => attribute[:display_name] || attribute[:name], :children => (children.map { |child| attributize(child) } unless children.empty?), :fulltext => (normalize(fulltext.compact.uniq.join(' ')) if children.empty?), :leaf => children.empty?, :qtip => attribute[:description] || attribute[:display_name] || attribute[:name], :qtipCfg => { :autoWidth => true, :dismissDelay => 0 } })
 end
 
 class MartSoap < Handsoap::Service
@@ -123,12 +131,16 @@ class MartSoap < Handsoap::Service
           mart_keywords << 'msd'
           mart_keywords << 'proteins'
           mart_keywords << 'structures'
+          mart_keywords << 'x-ray'
+          mart_keywords << 'crystallography'
+          mart_keywords << 'pdb'
         when /pride/i
           mart_keywords << 'pride'
           mart_keywords << 'peptides'
           mart_keywords << 'proteomics'
           mart_keywords << 'identifications'
           mart_keywords << 'proteins'
+          mart_keywords << 'mass spectrography'
         end
         mart_keywords = mart_keywords.flatten.compact.uniq
         select_dataset_menu[:menu] << mart.merge({ :itemId => mart[:name],
