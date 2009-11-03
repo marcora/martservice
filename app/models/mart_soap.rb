@@ -88,7 +88,12 @@ def filterize(filter)
   fulltext << filter[:display_name]
   fulltext << filter[:name]
   fulltext << filter[:description]
-  filter.merge({ :id => rand(36**8).to_s(36), :text => filter[:display_name] || filter[:name], :children => (children.map { |child| filterize(child) } unless children.empty?), :fulltext => (normalize(fulltext.compact.uniq.join(' ')) if children.empty?), :leaf => children.empty?, :qtip => filter[:description] || filter[:display_name] || filter[:name], :qtipCfg => { :autoWidth => true, :dismissDelay => 0 } })
+  filter.merge!({ :id => rand(36**8).to_s(36), :text => filter[:display_name] || filter[:name], :fulltext => normalize(fulltext.compact.uniq.join(' ')), :qtip => filter[:description] || filter[:display_name] || filter[:name], :qtipCfg => { :autoWidth => true, :dismissDelay => 0 } })
+  if children.empty?
+    filter.merge({ :leaf => true, :children => [], :iconCls => 'filter-icon' })
+  else
+    filter.merge({ :leaf => false, :children => children.map { |child| filterize(child) } })
+  end
 end
 
 def attributize(attribute)
@@ -107,7 +112,12 @@ def attributize(attribute)
   fulltext << attribute[:display_name]
   fulltext << attribute[:name]
   fulltext << attribute[:description]
-  attribute.merge({ :id => rand(36**8).to_s(36), :text => attribute[:display_name] || attribute[:name], :children => (children.map { |child| attributize(child) } unless children.empty?), :fulltext => (normalize(fulltext.compact.uniq.join(' ')) if children.empty?), :leaf => children.empty?, :qtip => attribute[:description] || attribute[:display_name] || attribute[:name], :qtipCfg => { :autoWidth => true, :dismissDelay => 0 } })
+  attribute.merge!({ :id => rand(36**8).to_s(36), :text => attribute[:display_name] || attribute[:name], :fulltext => normalize(fulltext.compact.uniq.join(' ')), :qtip => attribute[:description] || attribute[:display_name] || attribute[:name], :qtipCfg => { :autoWidth => true, :dismissDelay => 0 } })
+  if children.empty?
+    attribute.merge({ :leaf => true, :children => [], :iconCls => 'attribute-icon' })
+  else
+    attribute.merge({ :leaf => false, :children => children.map { |child| attributize(child) } })
+  end
 end
 
 class MartSoap < Handsoap::Service
