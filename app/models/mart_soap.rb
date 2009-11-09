@@ -88,7 +88,7 @@ def filterize(filter)
   fulltext << filter[:display_name]
   fulltext << filter[:name]
   fulltext << filter[:description]
-  filter.merge!({ :id => rand(36**8).to_s(36), :text => filter[:display_name] || filter[:name], :fulltext => normalize(fulltext.compact.uniq.join(' ')), :qtip => filter[:description] || filter[:display_name] || filter[:name], :qtipCfg => { :autoWidth => true, :dismissDelay => 0 } })
+  filter.merge!({ :id => rand(36**8).to_s(36), :text => filter[:display_name] || filter[:name], :fulltext => normalize(fulltext.compact.uniq.join(' ')), :qtipCfg => { :title => filter[:display_name] || filter[:name], :text => filter[:description], :dismissDelay => 0 } })
   if children.empty?
     filter.merge({ :leaf => true, :children => [], :iconCls => 'filter-icon' })
   else
@@ -112,7 +112,7 @@ def attributize(attribute)
   fulltext << attribute[:display_name]
   fulltext << attribute[:name]
   fulltext << attribute[:description]
-  attribute.merge!({ :id => rand(36**8).to_s(36), :text => attribute[:display_name] || attribute[:name], :fulltext => normalize(fulltext.compact.uniq.join(' ')), :qtip => attribute[:description] || attribute[:display_name] || attribute[:name], :qtipCfg => { :autoWidth => true, :dismissDelay => 0 } })
+  attribute.merge!({ :id => rand(36**8).to_s(36), :text => attribute[:display_name] || attribute[:name], :fulltext => normalize(fulltext.compact.uniq.join(' ')), :qtipCfg => { :title => attribute[:display_name] || attribute[:name], :text => attribute[:description], :dismissDelay => 0 } })
   if children.empty?
     attribute.merge({ :leaf => true, :children => [], :iconCls => 'attribute-icon' })
   else
@@ -196,6 +196,8 @@ class MartSoap < Handsoap::Service
                                                :dataset_display_name => dataset[:display_name] || dataset[:name],
                                                :description => DESCRIPTION,
                                                :keywords => dataset_keywords,
+                                               :help_fields => [],
+                                               :facet_fields => [],
                                                :fulltext => normalize([(dataset[:display_name] || dataset[:name]), (mart[:display_name] || mart[:name]), DESCRIPTION, dataset_keywords].flatten.join(' ')),
                                                :_id => dataset_id,
                                                :_parent => mart_id,
@@ -212,6 +214,8 @@ class MartSoap < Handsoap::Service
                                    :dataset_display_name => dataset[:display_name] || dataset[:name],
                                    :description => DESCRIPTION,
                                    :keywords => dataset_keywords,
+                                   :help_fields => [],
+                                   :facet_fields => [],
                                    :filters => self.filters(dataset[:name]).map { |filter| filterize(filter) },
                                    :attributes => self.attributes(dataset[:name]).map { |attribute| attributize(attribute) } }).to_json
             File.open(filename, 'w') { |f| f.write(json) }
