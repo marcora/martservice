@@ -23,6 +23,7 @@ Rails::Initializer.run do |config|
   config.gem 'httpclient'
   config.gem 'libxml-ruby', :lib => 'xml'
   config.gem 'json'
+  config.gem 'stemmer'
   config.gem 'delsolr'
   config.gem 'fastercsv', :lib => 'faster_csv'
   config.gem 'troelskn-handsoap', :lib => 'handsoap', :source => 'http://gems.github.com'

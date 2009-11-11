@@ -1,3 +1,5 @@
+require 'stemmer/porter'
+
 DESCRIPTION = "Praesent vitae metus ut ligula congue gravida eu ac odio. Sed porttitor massa ac lectus interdum aliquam. Suspendisse consequat egestas suscipit. Aliquam venenatis elementum velit at ornare. Aliquam erat volutpat. Suspendisse potenti. Vivamus euismod sodales mi, eget adipiscing quam fermentum nec. Morbi ac leo libero. Quisque commodo mollis molestie. Morbi sodales ante et quam facilisis faucibus. Vestibulum urna turpis, dapibus a hendrerit a, luctus at orci."
 STOP_WORDS = [ "a","able","about","across","after","all","almost","also","am","among","an","and","any","are","as","at","be","because","been","but","by","can","cannot","could","dear","did","do","does","either","else","ever","every","for","from","get","got","had","has","have","he","her","hers","him","his","how","however","i","if","in","into","is","it","its","just","least","let","like","likely","may","me","might","most","must","my","neither","no","nor","not","of","off","often","on","only","or","other","our","own","rather","said","say","says","she","should","since","so","some","than","that","the","their","them","then","there","these","they","this","tis","to","too","twas","us","wants","was","we","were","what","when","where","which","while","who","whom","why","will","with","would","yet","you","your" ]
 KEYWORDS = [ ["genes"],
@@ -56,7 +58,7 @@ def normalize(fulltext)
   normalized_words = []
   # remove stop words
   words = fulltext.downcase.gsub(/\b(#{STOP_WORDS.join('|')})\b/, '').split(/\b/)
-  words.each { |word| normalized_words << [word.singularize, word.pluralize] if word =~ /^\w+$/ }
+  words.each { |word| normalized_words << [word.singularize.stem, word.pluralize.stem] if word =~ /^\w+$/ }
   return normalized_words.flatten.uniq.join(' ')
 end
 
@@ -87,7 +89,8 @@ def filterize(filter)
   fulltext = []
   fulltext << filter[:display_name]
   fulltext << filter[:name]
-  fulltext << filter[:description]
+  fulltext << filter[:description] if filter[:description]
+  fulltext << filter[:options] if filter[:options]
   filter.merge!({ :id => rand(36**8).to_s(36), :text => filter[:display_name] || filter[:name], :fulltext => normalize(fulltext.compact.uniq.join(' ')), :qtipCfg => { :title => filter[:display_name] || filter[:name], :text => filter[:description], :dismissDelay => 0 } })
   if children.empty?
     filter.merge({ :leaf => true, :children => [], :iconCls => 'filter-icon' })
@@ -111,7 +114,8 @@ def attributize(attribute)
   fulltext = []
   fulltext << attribute[:display_name]
   fulltext << attribute[:name]
-  fulltext << attribute[:description]
+  fulltext << attribute[:description] if attribute[:description]
+  fulltext << attribute[:options] if attribute[:options]
   attribute.merge!({ :id => rand(36**8).to_s(36), :text => attribute[:display_name] || attribute[:name], :fulltext => normalize(fulltext.compact.uniq.join(' ')), :qtipCfg => { :title => attribute[:display_name] || attribute[:name], :text => attribute[:description], :dismissDelay => 0 } })
   if children.empty?
     attribute.merge({ :leaf => true, :children => [], :iconCls => 'attribute-icon' })
